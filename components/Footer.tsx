@@ -1,4 +1,115 @@
-// Marcador provisional: lo reemplaza el agente dueño (ver DESIGN.md).
+import type { CSSProperties } from 'react';
+import Logo from '@/components/ui/Logo';
+import { CallLink } from '@/components/ui/Cta';
+import { IconArrowDown, IconFacebook, IconWhatsApp } from '@/components/ui/Icons';
+import { CITIES, CONTACT, SYSTEMS } from '@/lib/content';
+import { WHATSAPP_DEFAULT_URL } from '@/lib/whatsapp';
+
+/**
+ * Footer claro (DESIGN.md §7.11). Lleva el logo oficial (superficie clara).
+ * Año fijo 2026: nada de new Date() en el render de servidor.
+ */
+
+// Color de cada sistema (mismo código de color que el resto del sitio).
+const SYSTEM_COLOR: Record<string, string> = {
+  electricidad: 'var(--color-electric)',
+  plomeria: 'var(--color-water)',
+  gas: 'var(--color-gas)',
+  hogar: 'var(--color-violet)',
+};
+
 export default function Footer() {
-  return <footer className="container-x py-12" />;
+  return (
+    <footer id="pie" className="ft-root">
+      <div className="container-x">
+        <div className="ft-main">
+          <div className="ft-brand">
+            <a href="#inicio" className="ft-logo-link">
+              <Logo className="ft-logo" sizes="174px" />
+              <span className="sr-only">, ir al inicio</span>
+            </a>
+            <p className="t-label ft-brand-label">
+              <span className="ft-brand-name">
+                <span className="ft-brand-sep" aria-hidden="true" />
+                Eléctricos y Plomeros
+              </span>
+              <span className="ft-brand-tag">Soluciones Eficientes</span>
+            </p>
+            <p className="ft-brand-line">Electricidad, plomería, gas y asistencia para tu hogar.</p>
+          </div>
+
+          <div className="ft-cols">
+            <div className="ft-col">
+              <p id="ft-servicios" className="t-label ft-col-title">
+                Servicios
+              </p>
+              <ul aria-labelledby="ft-servicios" className="ft-list">
+                {SYSTEMS.map((s) => (
+                  <li key={s.id}>
+                    <a
+                      href="#servicios"
+                      className="ft-link"
+                      style={{ '--c': SYSTEM_COLOR[s.id] } as CSSProperties}
+                    >
+                      <span className="ft-bullet" aria-hidden="true" />
+                      {s.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="ft-col">
+              <p id="ft-ciudades" className="t-label ft-col-title">
+                Ciudades
+              </p>
+              <ul aria-labelledby="ft-ciudades" className="ft-list">
+                {CITIES.map((c) => (
+                  <li key={c.id}>
+                    <a href="#cobertura" className="ft-link">
+                      <span className="ft-bullet" aria-hidden="true" />
+                      {c.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="ft-col ft-col-contact">
+              <p id="ft-contacto" className="t-label ft-col-title">
+                Contacto
+              </p>
+              <ul aria-labelledby="ft-contacto" className="ft-list">
+                <li>
+                  <CallLink className="ft-link ft-link-icon ft-phone" />
+                </li>
+                <li>
+                  <a href={WHATSAPP_DEFAULT_URL} target="_blank" rel="noopener noreferrer" className="ft-link ft-link-icon">
+                    <IconWhatsApp size={18} />
+                    <span>Escríbenos por WhatsApp</span>
+                    <span className="sr-only"> (se abre WhatsApp)</span>
+                  </a>
+                </li>
+                <li>
+                  <a href={CONTACT.facebookUrl} target="_blank" rel="noopener noreferrer" className="ft-link ft-link-icon">
+                    <IconFacebook size={18} />
+                    <span>Síguenos en Facebook</span>
+                    <span className="sr-only"> (se abre Facebook)</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="ft-bottom">
+          <p className="ft-copy">© 2026 Eléctricos y Plomeros · Soluciones Eficientes</p>
+          <a href="#inicio" className="ft-top">
+            Volver arriba
+            <IconArrowDown size={18} className="ft-top-icon" />
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
 }

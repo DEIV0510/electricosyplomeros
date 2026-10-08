@@ -1,3 +1,1162 @@
-/* Dueño: ver DESIGN.md. Todas las reglas dentro de @layer components. */
+/* Hero + HomeSystem (DESIGN.md §7.3–7.4). Dueño: hero. Prefijos: hero-, hs-.
+   Todas las reglas dentro de @layer components; las @keyframes van fuera.
+
+   Secuencia de entrada (solo con html.js; sin JS o con movimiento reducido todo está
+   en su estado final desde el primer pintado). Tiempos × --k (1 tras la pantalla de
+   carga, 0.62 con boot-skip). Se congela con html.is-booting y arranca sola al retirarse.
+     0 ms     pregunta "¿Qué está pasando?" (tipeo + cursor)
+     0 ms     anillo del sistema en ámbar parpadeando + "DETECTANDO…"
+     260 ms   entra el H1 (desplazamiento corto, nunca desde opacidad 0)
+     380 ms   barrido de franjas de arriba abajo; las franjas del techo se encienden
+     1000 ms  los circuitos se encienden
+     1080 ms  anillo verde + "SISTEMA LISTO" + barra verde bajo "SOLUCIÓN"
+     1250 ms  empiezan los flujos (energía, agua, gas) */
+
+@keyframes hero-type {
+  from {
+    clip-path: inset(-0.4em 100% -0.4em 0);
+  }
+  to {
+    clip-path: inset(-0.4em 0 -0.4em 0);
+  }
+}
+@keyframes hero-caret-move {
+  from {
+    transform: translateX(calc(-18 * (1ch + 0.06em)));
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes hero-caret-blink {
+  0%,
+  34% {
+    opacity: 1;
+  }
+  34.01%,
+  48% {
+    opacity: 0;
+  }
+  48.01%,
+  62% {
+    opacity: 1;
+  }
+  62.01%,
+  76% {
+    opacity: 0;
+  }
+  76.01%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hero-rise {
+  from {
+    opacity: 0.14;
+    transform: translate3d(0, 0.32em, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-power-on {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes hs-alert {
+  0%,
+  14% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0.18;
+  }
+  34% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 0.18;
+  }
+  58%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hs-ok {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hs-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hs-read-out {
+  0%,
+  88% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -5px, 0);
+  }
+}
+@keyframes hs-read-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hs-scan {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -100%, 0);
+  }
+  14%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 390%, 0);
+  }
+}
+@keyframes hs-stripe-on {
+  from {
+    opacity: 0.22;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hs-power {
+  from {
+    opacity: 0.22;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hs-flow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+@keyframes hs-gas-flow {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+/* Pulso eléctrico A: acometida → tablero → alcoba → baño (pathLength 1000). */
+@keyframes hs-pulse-a {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: -1010;
+  }
+}
+/* Pulso B: tablero → sala. Sale cuando A llega al tablero. */
+@keyframes hs-pulse-b {
+  0%,
+  19% {
+    stroke-dashoffset: 160;
+  }
+  37%,
+  100% {
+    stroke-dashoffset: -1010;
+  }
+}
+@keyframes hs-lamp-a {
+  0%,
+  25% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 0.9;
+  }
+  44%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hs-lamp-b {
+  0%,
+  33% {
+    opacity: 0;
+  }
+  36% {
+    opacity: 0.9;
+  }
+  52%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hs-lamp-c {
+  0%,
+  42% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.9;
+  }
+  61%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hs-lamp-d {
+  0%,
+  57% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  76%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hs-wave {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+@keyframes hs-node-seq {
+  0%,
+  11%,
+  100% {
+    transform: none;
+  }
+  4%,
+  7% {
+    transform: scale(1.6);
+  }
+}
+@keyframes hs-node-core {
+  0%,
+  11%,
+  100% {
+    opacity: 0;
+  }
+  4%,
+  7% {
+    opacity: 1;
+  }
+}
+
 @layer components {
+  /* ================================================================ */
+  /*  Hero                                                            */
+  /* ================================================================ */
+  .hero {
+    --k: 1;
+    background: var(--color-paper);
+  }
+  html.boot-skip .hero {
+    --k: 0.62;
+  }
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: min(calc(100svh - 40px), 900px);
+    }
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(130% 95% at 72% 32%, #000 28%, transparent 82%);
+    mask-image: radial-gradient(130% 95% at 72% 32%, #000 28%, transparent 82%);
+  }
+
+  .hero-inner {
+    padding-top: calc(var(--nav-h) + clamp(28px, 22svh - 140px, 132px));
+    padding-bottom: clamp(48px, 7vh, 80px);
+  }
+
+  /* Pregunta inicial: rótulo técnico grande, con cursor breve */
+  .hero-ask {
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: clamp(1rem, 0.92rem + 0.42vw, 1.25rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .hero-ask-text {
+    display: inline-block;
+  }
+  .hero-caret {
+    display: inline-block;
+    width: 0.56em;
+    height: 1.08em;
+    margin-left: 0.1em;
+    background: var(--color-electric);
+    opacity: 0;
+  }
+
+  /* H1 */
+  .hero-title {
+    font-size: clamp(2.4rem, 10.9vw, 4.6rem);
+  }
+  @media (min-width: 1024px) {
+    .hero-title {
+      font-size: clamp(3.2rem, 5.3vw, 4.9rem);
+    }
+  }
+  .hero-line {
+    display: block;
+    white-space: nowrap;
+  }
+  .hero-solve {
+    position: relative;
+    display: inline-block;
+    color: var(--color-violet);
+  }
+  /* Indicador de "encendido": barra verde bajo SOLUCIÓN */
+  .hero-power {
+    position: absolute;
+    left: 0.03em;
+    right: 0.02em;
+    bottom: -0.11em;
+    height: max(5px, 0.075em);
+    background: var(--color-green);
+    transform-origin: 0 50%;
+  }
+
+  .hero-arrow {
+    transition: transform 0.25s var(--ease-out);
+  }
+  .btn:hover .hero-arrow,
+  .btn:focus-visible .hero-arrow {
+    transform: translateY(3px);
+  }
+
+  .hero-call {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    font-weight: 650;
+    font-size: 1.0625rem;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink);
+    white-space: nowrap;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color 0.2s var(--ease-out);
+  }
+  .hero-call svg {
+    color: var(--color-violet);
+  }
+  .hero-call:hover {
+    text-decoration-color: currentColor;
+  }
+  .hero-cities {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .hero-rhomb {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-inline: 0.75rem;
+    background: var(--color-violet);
+    transform: rotate(45deg);
+  }
+  @media (min-width: 640px) {
+    .hero-facts .hero-cities::before {
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: 18px;
+      margin-right: 1.5rem;
+      background: var(--line-strong);
+    }
+  }
+
+  /* ---------------- Secuencia de entrada (con JS) ---------------- */
+  html.js .hero-ask-text {
+    animation: hero-type calc(520ms * var(--k)) steps(18, end) both;
+  }
+  html.js .hero-caret {
+    animation:
+      hero-caret-move calc(520ms * var(--k)) steps(18, end) both,
+      hero-caret-blink calc(1700ms * var(--k)) linear both;
+  }
+  html.js .hero-line {
+    animation: hero-rise calc(640ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(260ms * var(--k));
+  }
+  html.js .hero-line-2 {
+    animation-delay: calc(330ms * var(--k));
+  }
+  html.js .hero-line-3 {
+    animation-delay: calc(400ms * var(--k));
+  }
+  html.js .hero-power {
+    animation: hero-power-on calc(420ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(1080ms * var(--k));
+  }
+  html.js .hero-in {
+    animation: hero-fade-up calc(520ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(520ms * var(--k));
+  }
+  html.js .hero-in-2 {
+    animation-delay: calc(600ms * var(--k));
+  }
+  html.js .hero-in-3 {
+    animation-delay: calc(680ms * var(--k));
+  }
+
+  /* ================================================================ */
+  /*  HomeSystem                                                      */
+  /* ================================================================ */
+  .hs {
+    position: relative;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  @media (min-width: 1024px) {
+    .hs {
+      max-width: none;
+      margin-inline: 0;
+    }
+  }
+
+  /* Lectura de estado */
+  /* Ancho fijo en rem y contenido alineado a la izquierda: al cargar la fuente mono
+     ninguna parte cambia de punto de inicio (sin CLS). */
+  .hs-readout {
+    display: flex;
+    align-items: center;
+    width: 12.5rem;
+    min-height: 20px;
+    margin: 0 0 8px auto;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .hs-read-k {
+    flex: none;
+    width: 4.4rem;
+  }
+  .hs-read-v {
+    display: inline-grid;
+    color: var(--color-ink-2);
+  }
+  .hs-read-v > span {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    white-space: nowrap;
+  }
+  .hs-read-detect {
+    opacity: 0;
+  }
+  .hs-read-ok {
+    color: var(--color-green-ink);
+    font-weight: 600;
+  }
+  .hs-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .hs-dot-alert {
+    background: var(--color-gas);
+  }
+  .hs-dot-ok {
+    background: var(--color-green);
+    box-shadow: 0 0 0 3px rgb(0 192 0 / 0.16);
+  }
+  @media (min-width: 640px) {
+    /* Caja de ancho fijo (rem): el cambio de fuente mono no la desplaza */
+    .hs-readout {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 3;
+      margin: 0;
+    }
+  }
+
+  /* Escenario */
+  .hs-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 480 / 540;
+  }
+  @media (min-width: 640px) {
+    .hs-stage {
+      aspect-ratio: 600 / 540;
+    }
+  }
+  .hs-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .hs-layer > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .hs-l-sys {
+    will-change: transform;
+  }
+  .hs-stage[data-interactive] .hs-layer[data-depth] {
+    will-change: transform;
+  }
+
+  .hs-halo {
+    position: absolute;
+    top: -170px;
+    left: -170px;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(75 46 245 / 0.13), rgb(75 46 245 / 0.05) 55%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease-out);
+  }
+  .hs-stage[data-pointer="on"] .hs-halo {
+    opacity: 1;
+  }
+
+  /* Barrido de franjas (eco del rombo del logo), recortado al escenario */
+  .hs-scan-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .hs-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 26%;
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 3px, rgb(58 0 128 / 0.2) 3px 6px);
+    border-bottom: 2px solid var(--color-electric);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 85%);
+    mask-image: linear-gradient(to bottom, transparent, #000 85%);
+  }
+
+  /* ---------------- Capa trasera ---------------- */
+  .hs-axis {
+    fill: none;
+    stroke: var(--color-violet);
+    stroke-opacity: 0.3;
+    stroke-width: 1;
+    stroke-dasharray: 18 4 2 4;
+  }
+  .hs-cross {
+    fill: none;
+    stroke: var(--color-ink-3);
+    stroke-width: 1;
+    opacity: 0.7;
+  }
+
+  /* ---------------- Casa ---------------- */
+  .hs-room {
+    fill: var(--color-paper);
+  }
+  .hs-roof {
+    opacity: 0.9;
+  }
+  .hs-stripe {
+    fill: var(--color-violet);
+  }
+  .hs-shell {
+    fill: var(--color-paper-2);
+    stroke: var(--color-ink);
+    stroke-width: 1.5;
+    stroke-linejoin: miter;
+  }
+  .hs-part {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-width: 1.5;
+  }
+  .hs-window {
+    fill: var(--color-paper);
+    stroke: var(--color-ink);
+    stroke-width: 1.25;
+  }
+  .hs-ground {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-width: 1.5;
+  }
+  .hs-hatch {
+    fill: none;
+    stroke: var(--color-ink-3);
+    stroke-width: 1;
+    opacity: 0.6;
+  }
+  .hs-furn {
+    fill: none;
+    stroke: var(--color-ink-3);
+    stroke-width: 1.25;
+  }
+  .hs-fill {
+    fill: var(--color-paper);
+  }
+  .hs-knob {
+    fill: none;
+    stroke: var(--color-ink-3);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .hs-counter {
+    fill: none;
+    stroke: var(--color-ink-2);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+
+  /* ---------------- Sistemas ---------------- */
+  .hs-e {
+    --c: var(--color-electric);
+  }
+  .hs-w {
+    --c: var(--color-water);
+  }
+  .hs-g {
+    --c: var(--color-gas);
+  }
+  .hs-h {
+    --c: var(--color-green);
+  }
+  .hs-sys {
+    transition: opacity 0.25s var(--ease-out);
+  }
+  /* Todo lo pintado de un sistema responde al puntero (la capa no). */
+  .hs-sys,
+  .hs-sys * {
+    pointer-events: visiblePainted;
+  }
+  .hs-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 18;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: stroke;
+  }
+  .hs-hit-fill {
+    fill: transparent;
+    pointer-events: fill;
+  }
+  .hs-src {
+    fill: var(--c);
+  }
+
+  /* Energía */
+  .hs-wire {
+    fill: none;
+    stroke: var(--color-electric);
+    stroke-opacity: 0.72;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hs-pulse,
+  .hs-pulse-glow {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    visibility: hidden;
+  }
+  .hs-pulse {
+    stroke: var(--color-electric);
+    stroke-width: 3;
+    stroke-dasharray: 34 1200;
+    stroke-dashoffset: 50;
+  }
+  .hs-pulse-glow {
+    stroke: var(--color-electric-glow);
+    stroke-opacity: 0.45;
+    stroke-width: 9;
+    stroke-dasharray: 34 1200;
+    stroke-dashoffset: 50;
+  }
+  .hs-pulse-b {
+    stroke-dasharray: 140 1300;
+    stroke-dashoffset: 160;
+  }
+  .hs-panel rect,
+  .hs-outlet rect,
+  .hs-lamp-bg {
+    fill: var(--color-paper);
+    stroke: var(--color-electric);
+    stroke-width: 1.5;
+  }
+  .hs-panel path,
+  .hs-outlet path,
+  .hs-lamp path {
+    fill: none;
+    stroke: var(--color-electric);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+  }
+  .hs-lamp-glow {
+    fill: var(--color-electric-glow);
+    opacity: 0;
+  }
+  .hs-lamp-ring {
+    fill: none;
+    stroke: var(--color-electric);
+    stroke-width: 1.5;
+  }
+
+  /* Agua */
+  .hs-pipe {
+    fill: none;
+    stroke: var(--color-water);
+    stroke-opacity: 0.24;
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hs-flow {
+    fill: none;
+    stroke: var(--color-water);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 5 9;
+  }
+  .hs-shower {
+    fill: var(--color-paper);
+    stroke: var(--color-water);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .hs-drops {
+    fill: none;
+    stroke: var(--color-water);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.75;
+  }
+
+  /* Gas */
+  .hs-gas {
+    fill: none;
+    stroke: var(--color-gas);
+    stroke-opacity: 0.85;
+    stroke-width: 1.5;
+    stroke-dasharray: 3 5;
+    stroke-linejoin: round;
+  }
+  .hs-meter {
+    fill: var(--color-paper);
+    stroke: var(--color-gas);
+    stroke-width: 1.5;
+  }
+  .hs-meter-dial,
+  .hs-burner {
+    fill: none;
+    stroke: var(--color-gas);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+  }
+  .hs-burner {
+    fill: var(--color-paper);
+  }
+  .hs-flames path {
+    fill: var(--color-gas);
+    fill-opacity: 0.18;
+    stroke: var(--color-gas);
+    stroke-width: 1.1;
+    stroke-linejoin: round;
+  }
+
+  /* Hogar: anillo de encendido */
+  .hs-ring path {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+  }
+  .hs-ring {
+    transform-box: view-box;
+    transform-origin: 300px 150px;
+  }
+  .hs-ring-ok path {
+    stroke: var(--color-green);
+  }
+  .hs-ring-alert path {
+    stroke: var(--color-gas);
+  }
+  .hs-ring-alert {
+    opacity: 0;
+  }
+  .hs-ring-wave {
+    fill: none;
+    stroke: var(--color-green);
+    stroke-width: 1.5;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Nodos */
+  .hs-node {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      transform 0.22s var(--ease-out),
+      opacity 0.25s var(--ease-out);
+  }
+  .hs-node[data-node="electricidad"] {
+    --c: var(--color-electric);
+  }
+  .hs-node[data-node="plomeria"] {
+    --c: var(--color-water);
+  }
+  .hs-node[data-node="gas"] {
+    --c: var(--color-gas);
+  }
+  .hs-node-ring {
+    fill: var(--color-paper);
+    stroke: var(--c);
+    stroke-width: 1.5;
+  }
+  .hs-node-core {
+    fill: var(--c);
+    opacity: 0;
+    transition: opacity 0.22s var(--ease-out);
+  }
+  .hs-node.is-lit {
+    transform: scale(1.6);
+  }
+  .hs-node.is-lit .hs-node-core {
+    opacity: 1;
+  }
+
+  /* Resaltado por sistema (puntero sobre un circuito o su rótulo) */
+  .hs-stage[data-focus="electricidad"] .hs-sys:not([data-sys="electricidad"]),
+  .hs-stage[data-focus="plomeria"] .hs-sys:not([data-sys="plomeria"]),
+  .hs-stage[data-focus="gas"] .hs-sys:not([data-sys="gas"]),
+  .hs-stage[data-focus="hogar"] .hs-sys:not([data-sys="hogar"]),
+  .hs-stage[data-focus="electricidad"] .hs-node:not([data-node="electricidad"]),
+  .hs-stage[data-focus="plomeria"] .hs-node:not([data-node="plomeria"]),
+  .hs-stage[data-focus="gas"] .hs-node:not([data-node="gas"]),
+  .hs-stage[data-focus="hogar"] .hs-node {
+    opacity: 0.2;
+  }
+  .hs-stage[data-focus="electricidad"] .hs-leader[data-sys="electricidad"],
+  .hs-stage[data-focus="plomeria"] .hs-leader[data-sys="plomeria"],
+  .hs-stage[data-focus="gas"] .hs-leader[data-sys="gas"],
+  .hs-stage[data-focus="hogar"] .hs-leader[data-sys="hogar"] {
+    --lc: var(--c);
+  }
+
+  /* ---------------- Rótulos ---------------- */
+  .hs-leader[data-sys="electricidad"],
+  .hs-label[data-sys="electricidad"],
+  .hs-legend [data-sys="electricidad"] {
+    --c: var(--color-electric);
+  }
+  .hs-leader[data-sys="plomeria"],
+  .hs-label[data-sys="plomeria"],
+  .hs-legend [data-sys="plomeria"] {
+    --c: var(--color-water);
+  }
+  .hs-leader[data-sys="gas"],
+  .hs-label[data-sys="gas"],
+  .hs-legend [data-sys="gas"] {
+    --c: var(--color-gas);
+  }
+  .hs-leader[data-sys="hogar"],
+  .hs-label[data-sys="hogar"],
+  .hs-legend [data-sys="hogar"] {
+    --c: var(--color-green);
+  }
+  .hs-leader path {
+    fill: none;
+    stroke: var(--lc, var(--color-ink-3));
+    stroke-width: 1;
+    transition: stroke 0.2s var(--ease-out);
+  }
+  .hs-leader circle {
+    fill: var(--lc, var(--color-ink-2));
+    transition: fill 0.2s var(--ease-out);
+  }
+  .hs-label {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 6px;
+    transform: translateY(-100%);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: default;
+    /* Siempre alineado a la izquierda desde un ancla fija: la carga de la fuente mono
+       no cambia el punto de inicio de nada (sin CLS). */
+    align-items: flex-start;
+  }
+  .hs-label-i {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-ink-3);
+  }
+  .hs-label-i::before {
+    content: "";
+    width: 12px;
+    height: 2px;
+    background: var(--c);
+  }
+  .hs-label-n {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  .hs-l-labels {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .hs-l-labels {
+      display: block;
+    }
+  }
+
+  /* Leyenda (móvil) */
+  .hs-legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-2);
+  }
+  .hs-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .hs-legend .hs-label-i::before {
+    display: none;
+  }
+  .hs-legend-n {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+  .hs-sw {
+    flex: none;
+    width: 22px;
+    height: 8px;
+    background: linear-gradient(var(--c), var(--c)) center / 100% 2px no-repeat;
+  }
+  .hs-sw[data-sys="plomeria"] {
+    background:
+      linear-gradient(var(--c), var(--c)) center / 100% 1.5px no-repeat,
+      linear-gradient(rgb(11 134 196 / 0.24), rgb(11 134 196 / 0.24)) center / 100% 6px no-repeat;
+  }
+  .hs-sw[data-sys="gas"] {
+    background: repeating-linear-gradient(to right, var(--c) 0 3px, transparent 3px 6px) center / 100% 1.5px no-repeat;
+  }
+  .hs-sw[data-sys="hogar"] {
+    width: 10px;
+    height: 10px;
+    margin-inline: 6px;
+    border: 2px solid var(--c);
+    border-radius: 50%;
+    background: none;
+  }
+  @media (min-width: 640px) {
+    .hs-legend {
+      display: none;
+    }
+  }
+
+  /* ---------------- Secuencia de entrada del sistema ---------------- */
+  html.js .hs-read-detect {
+    animation: hs-read-out calc(1120ms * var(--k)) linear both;
+  }
+  html.js .hs-read-ok {
+    animation: hs-read-in calc(320ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(1080ms * var(--k));
+  }
+  html.js .hs-dot-alert,
+  html.js .hs-ring-alert {
+    animation: hs-alert calc(1150ms * var(--k)) linear both;
+  }
+  html.js .hs-ring-ok {
+    animation: hs-ok calc(380ms * var(--k)) var(--ease-spring) both;
+    animation-delay: calc(1080ms * var(--k));
+  }
+  html.js .hs-ring-glow {
+    animation: hs-fade-in calc(500ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(1080ms * var(--k));
+  }
+  html.js .hs-scan {
+    animation: hs-scan calc(700ms * var(--k)) var(--ease-in-out) both;
+    animation-delay: calc(380ms * var(--k));
+  }
+  html.js .hs-stripe {
+    animation: hs-stripe-on calc(300ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc((400ms + var(--i) * 26ms) * var(--k));
+  }
+  html.js .hs-power {
+    animation: hs-power calc(420ms * var(--k)) var(--ease-out) both;
+    animation-delay: calc(980ms * var(--k));
+  }
+
+  /* ---------------- Bucles (anim-loop: se congelan en lite / fuera de pantalla) ---------------- */
+  html.js .hs-flow {
+    animation: hs-flow 0.62s linear infinite;
+    animation-delay: calc(1250ms * var(--k));
+  }
+  html.js .hs-gas {
+    animation: hs-gas-flow 2.6s linear infinite;
+    animation-delay: calc(1250ms * var(--k));
+  }
+  html.js .hs-pulse,
+  html.js .hs-pulse-glow {
+    visibility: visible;
+    animation: hs-pulse-a 3.6s linear infinite;
+    animation-delay: calc(1250ms * var(--k));
+  }
+  html.js .hs-pulse-b {
+    animation-name: hs-pulse-b;
+  }
+  html.js .hs-lamp-glow {
+    animation: hs-lamp-a 3.6s linear infinite;
+    animation-delay: calc(1250ms * var(--k));
+  }
+  html.js .hs-lamp[data-n="1"] .hs-lamp-glow {
+    animation-name: hs-lamp-b;
+  }
+  html.js .hs-lamp[data-n="2"] .hs-lamp-glow {
+    animation-name: hs-lamp-c;
+  }
+  html.js .hs-lamp[data-n="3"] .hs-lamp-glow {
+    animation-name: hs-lamp-d;
+  }
+  html.js .hs-ring-wave {
+    animation: hs-wave 3s var(--ease-out) infinite;
+    animation-delay: calc(1450ms * var(--k));
+  }
+  /* Táctil: los nodos se encienden en secuencia (en escritorio los enciende el puntero) */
+  @media (hover: none), (pointer: coarse) {
+    html.js .hs-node {
+      animation: hs-node-seq 5.4s var(--ease-out) infinite;
+      animation-delay: calc(1400ms * var(--k) + var(--i) * 600ms);
+    }
+    html.js .hs-node .hs-node-core {
+      animation: hs-node-core 5.4s var(--ease-out) infinite;
+      animation-delay: calc(1400ms * var(--k) + var(--i) * 600ms);
+    }
+  }
+
+  /* Pantalla de carga: todo espera congelado en su primer fotograma y arranca cuando la
+     cortina empieza a salir (boot-done), para que el titular suba mientras se retira. */
+  html.is-booting:not(.boot-done) .hero,
+  html.is-booting:not(.boot-done) .hero * {
+    animation-play-state: paused !important;
+  }
+
+  /* lite: sin pulsos (los demás bucles quedan quietos por .anim-loop) */
+  html.lite .hs-pulse,
+  html.lite .hs-pulse-glow {
+    visibility: hidden;
+  }
+
+  /* Movimiento reducido: estado final, sin bucles ni secuencias */
+  html.rm .hero *,
+  html.rm .hero *::before,
+  html.rm .hero *::after {
+    animation: none !important;
+  }
+  html.rm .hs-pulse,
+  html.rm .hs-pulse-glow,
+  html.rm .hs-halo {
+    display: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero *,
+    .hero *::before,
+    .hero *::after {
+      animation: none !important;
+    }
+    .hs-pulse,
+    .hs-pulse-glow,
+    .hs-halo {
+      display: none;
+    }
+  }
 }

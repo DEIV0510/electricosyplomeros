@@ -1,3 +1,661 @@
-/* Dueño: ver DESIGN.md. Todas las reglas dentro de @layer components. */
+/* §7.6 "Un hogar. Cuatro sistemas." — dueño: agente systems. Prefijo sys-.
+   Todas las reglas dentro de @layer components (las @keyframes pueden ir fuera). */
+
+/* Flujos: el desfase recorre exactamente un periodo del patrón (bucle sin salto). */
+@keyframes sys-dash-e {
+  to {
+    stroke-dashoffset: -280;
+  }
+}
+@keyframes sys-dash-w {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+@keyframes sys-dash-g {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+@keyframes sys-dash-h {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+@keyframes sys-spark {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.7);
+  }
+  5% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  10% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  16% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  42% {
+    opacity: 0.2;
+    transform: scale(0.7);
+  }
+}
+@keyframes sys-halo {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  5% {
+    opacity: 1;
+  }
+  16% {
+    opacity: 0.85;
+  }
+  42% {
+    opacity: 0.35;
+  }
+}
+
 @layer components {
+  /* ---------------------------------------------------------------- */
+  /*  Sección y cabecera                                               */
+  /* ---------------------------------------------------------------- */
+  .sys-section {
+    position: relative;
+    background: var(--color-paper-2);
+    border-top: 1px solid var(--line);
+    padding-block: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+  }
+  .sys-head {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: clamp(2rem, 1.2rem + 2.6vw, 3.5rem);
+  }
+  .sys-h2 {
+    margin-top: 1.25rem;
+    font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+    color: var(--color-ink);
+  }
+  .sys-head-lead {
+    max-width: 30rem;
+  }
+  /* Lado a lado solo cuando «CUATRO SISTEMAS.» cabe en una línea junto al texto. */
+  @media (min-width: 1280px) {
+    .sys-head {
+      grid-template-columns: minmax(0, 1fr) 19rem;
+      align-items: end;
+      column-gap: 3rem;
+    }
+    .sys-head-lead {
+      padding-bottom: 0.3rem;
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Color por sistema                                                */
+  /* ---------------------------------------------------------------- */
+  .sys-board {
+    --sys-glow: var(--color-electric-glow);
+    position: relative;
+  }
+  .sys-board[data-sys="plomeria"] {
+    --sys-glow: var(--color-water-glow);
+  }
+  .sys-board[data-sys="gas"] {
+    --sys-glow: var(--color-gas-glow);
+  }
+  .sys-board[data-sys="hogar"] {
+    --sys-glow: var(--color-green);
+  }
+  .sys-col[data-sys="electricidad"],
+  .sys-tag-item[data-sys="electricidad"] {
+    --col-ink: var(--color-electric);
+    --col-glow: var(--color-electric-glow);
+  }
+  .sys-col[data-sys="plomeria"],
+  .sys-tag-item[data-sys="plomeria"] {
+    --col-ink: var(--color-water);
+    --col-glow: var(--color-water-glow);
+  }
+  .sys-col[data-sys="gas"],
+  .sys-tag-item[data-sys="gas"] {
+    --col-ink: var(--color-gas);
+    --col-glow: var(--color-gas-glow);
+  }
+  .sys-col[data-sys="hogar"],
+  .sys-tag-item[data-sys="hogar"] {
+    --col-ink: var(--color-violet);
+    --col-glow: var(--color-green);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Escenario (night)                                                */
+  /* ---------------------------------------------------------------- */
+  .sys-stage {
+    position: relative;
+    z-index: 2;
+    height: 188px;
+    overflow: hidden;
+    background: var(--color-night);
+    color: var(--color-mist);
+  }
+  @media (max-width: 767.98px) {
+    .sys-stage {
+      margin-inline: calc(-1 * var(--gutter));
+    }
+  }
+  /* Móvil en vertical: el escenario se queda fijo bajo la barra mientras bajan los bloques. */
+  @media (max-width: 767.98px) and (min-height: 560px) {
+    .sys-stage {
+      position: sticky;
+      top: var(--nav-h);
+    }
+  }
+  @media (min-width: 768px) {
+    .sys-stage {
+      height: 264px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sys-stage {
+      height: clamp(288px, 21vw, 320px);
+    }
+  }
+  .sys-stage-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.75;
+    mask-image: radial-gradient(120% 90% at 50% 50%, #000 40%, transparent 100%);
+  }
+  .sys-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* La línea */
+  .sys-l {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      stroke 0.6s var(--ease-out),
+      opacity 0.45s var(--ease-out);
+  }
+  .sys-l-glow {
+    stroke: var(--sys-glow);
+    stroke-width: 9;
+    opacity: 0.13;
+  }
+  .sys-l-pipe-o {
+    stroke: var(--sys-glow);
+    stroke-width: 12;
+    opacity: 0;
+  }
+  .sys-l-pipe-i {
+    stroke: var(--color-night);
+    stroke-width: 7.5;
+    opacity: 0;
+  }
+  .sys-l-core {
+    stroke: var(--sys-glow);
+    stroke-width: 2;
+  }
+  .sys-board[data-sys="plomeria"] .sys-l-pipe-o,
+  .sys-board[data-sys="plomeria"] .sys-l-pipe-i {
+    opacity: 1;
+  }
+  .sys-board[data-sys="plomeria"] .sys-l-core,
+  .sys-board[data-sys="plomeria"] .sys-l-glow {
+    opacity: 0;
+  }
+  .sys-board[data-sys="gas"] .sys-l-core {
+    opacity: 0.4;
+  }
+  .sys-board[data-sys="gas"] .sys-l-glow {
+    opacity: 0.06;
+  }
+  .sys-board[data-sys="hogar"] .sys-l-glow {
+    opacity: 0.1;
+  }
+
+  /* Flujos: uno por sistema; solo el activo se ve y corre (tras terminar la transformación). */
+  .sys-flow {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+    animation-play-state: paused;
+  }
+  .sys-flow[data-flow="electricidad"] {
+    stroke: #fff;
+    stroke-width: 2.4;
+    stroke-dasharray: 26 254;
+    animation: sys-dash-e 0.95s linear infinite;
+  }
+  .sys-flow[data-flow="plomeria"] {
+    stroke: var(--color-mist);
+    stroke-width: 2;
+    stroke-dasharray: 7 11;
+    animation: sys-dash-w 0.5s linear infinite;
+  }
+  .sys-flow[data-flow="gas"] {
+    stroke: var(--color-gas-glow);
+    stroke-width: 1.75;
+    stroke-dasharray: 10 14;
+    animation: sys-dash-g 1.5s linear infinite;
+  }
+  .sys-flow[data-flow="hogar"] {
+    stroke: var(--color-green);
+    stroke-width: 3.5;
+    stroke-dasharray: 0.01 23.99;
+    animation: sys-dash-h 2.2s linear infinite;
+  }
+  .sys-flow[data-flow] {
+    animation-play-state: paused;
+  }
+  .sys-board[data-sys="electricidad"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="electricidad"],
+  .sys-board[data-sys="plomeria"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="plomeria"],
+  .sys-board[data-sys="gas"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="gas"],
+  .sys-board[data-sys="hogar"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="hogar"] {
+    opacity: 1;
+    animation-play-state: running;
+    transition: opacity 0.5s var(--ease-out);
+  }
+  .sys-board[data-sys="plomeria"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="plomeria"] {
+    opacity: 0.85;
+  }
+
+  /* Accesorios */
+  .sys-acc {
+    opacity: 0;
+    transition: opacity 0.18s linear;
+  }
+  .sys-acc[data-acc="hogar"] {
+    opacity: 1;
+  }
+  .sys-board[data-sys="electricidad"] .sys-stage:not([data-morphing]) .sys-acc[data-acc="electricidad"],
+  .sys-board[data-sys="plomeria"] .sys-stage:not([data-morphing]) .sys-acc[data-acc="plomeria"],
+  .sys-board[data-sys="gas"] .sys-stage:not([data-morphing]) .sys-acc[data-acc="gas"] {
+    opacity: 1;
+    transition: opacity 0.45s var(--ease-out);
+  }
+  .sys-e-vias {
+    fill: var(--color-night);
+    stroke: var(--color-electric-glow);
+    stroke-width: 1.5;
+  }
+  .sys-halo-stop {
+    stop-color: var(--color-electric-glow);
+  }
+  .sys-spark-core {
+    fill: #fff;
+  }
+  .sys-spark-rays {
+    fill: none;
+    stroke: var(--color-mist);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sys-spark 2.8s var(--ease-out) infinite;
+    animation-play-state: paused;
+  }
+  .sys-spark-halo {
+    animation: sys-halo 2.8s var(--ease-out) infinite;
+    animation-play-state: paused;
+  }
+  .sys-board[data-sys="electricidad"] .sys-spark-rays,
+  .sys-board[data-sys="electricidad"] .sys-spark-halo {
+    animation-play-state: running;
+  }
+  .sys-w-joints {
+    fill: var(--color-night);
+    stroke: var(--color-water-glow);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .sys-g-valve {
+    fill: var(--color-night);
+    stroke: var(--color-gas-glow);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .sys-g-meter {
+    fill: var(--color-night);
+    stroke: var(--color-gas-glow);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .sys-g-stem {
+    fill: none;
+    stroke: var(--color-gas-glow);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  /* Casa: franjas del techo que se encienden una a una (eco del rombo del logo) + puerta */
+  .sys-h-stripe {
+    fill: none;
+    stroke: var(--color-electric-glow);
+    stroke-width: 2;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+  }
+  .sys-h-door {
+    fill: none;
+    stroke: var(--color-green);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+  }
+  .sys-board[data-sys="hogar"] .sys-stage:not([data-morphing]) .sys-h-stripe {
+    opacity: 0.6;
+    transition: opacity 0.35s var(--ease-out) calc(var(--k, 0) * 90ms);
+  }
+  .sys-board[data-sys="hogar"] .sys-stage:not([data-morphing]) .sys-h-door {
+    opacity: 0.75;
+    transition: opacity 0.45s var(--ease-out) 0.3s;
+  }
+
+  /* Rótulo del sistema activo */
+  .sys-tag {
+    position: absolute;
+    top: 16px;
+    left: var(--gutter);
+    display: grid;
+  }
+  .sys-tag-item {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    transition:
+      opacity 0.18s linear,
+      transform 0.18s var(--ease-out);
+  }
+  .sys-tag-item[data-on] {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.4s var(--ease-out) 0.12s,
+      transform 0.55s var(--ease-out) 0.12s;
+  }
+  .sys-tag-big {
+    display: flex;
+    align-items: baseline;
+    gap: 0.32em;
+    font-size: clamp(1.45rem, 1rem + 1.9vw, 2.6rem);
+    color: var(--color-mist);
+  }
+  .sys-tag-idx {
+    color: var(--col-glow);
+  }
+  .sys-tag-sep {
+    color: var(--color-mist-3);
+    font-weight: 300;
+  }
+
+  /* Lectura (arriba a la derecha) */
+  .sys-read {
+    position: absolute;
+    top: 22px;
+    right: var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .sys-read-form {
+    display: none;
+    color: var(--color-mist-2);
+  }
+  .sys-read-item {
+    grid-area: 1 / 1;
+    justify-self: end;
+    opacity: 0;
+    transition: opacity 0.18s linear;
+  }
+  .sys-read-item[data-on] {
+    opacity: 1;
+    transition: opacity 0.4s var(--ease-out) 0.15s;
+  }
+  .sys-dots {
+    display: flex;
+    gap: 11px;
+    margin: 0;
+    padding: 0 2px;
+    list-style: none;
+  }
+  .sys-dot {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    border: 1.5px solid var(--color-mist-3);
+    transition:
+      background-color 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out);
+  }
+  .sys-dot[data-on] {
+    background: var(--sys-glow);
+    border-color: var(--sys-glow);
+  }
+
+  /* Regla inferior (≥1024): sus cuatro tramos caen sobre las cuatro columnas */
+  .sys-rule {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .sys-tag {
+      top: 26px;
+      left: 30px;
+    }
+    .sys-read {
+      top: 32px;
+      right: 30px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sys-tag {
+      top: 30px;
+      left: 36px;
+    }
+    .sys-read {
+      top: 38px;
+      right: 36px;
+    }
+    .sys-read-form {
+      display: grid;
+    }
+    .sys-rule {
+      position: absolute;
+      inset: auto 0 0 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      height: 22px;
+      border-top: 1px solid var(--line-night);
+      background-image: repeating-linear-gradient(90deg, rgb(157 140 255 / 0.22) 0 1px, transparent 1px 12px);
+      background-size: 100% 6px;
+      background-repeat: no-repeat;
+    }
+    .sys-rule-cell + .sys-rule-cell {
+      border-left: 1px solid rgb(157 140 255 / 0.32);
+    }
+    .sys-rule-bar {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 25%;
+      height: 3px;
+      background: var(--sys-glow);
+      transition:
+        transform 0.6s var(--ease-in-out),
+        background-color 0.6s var(--ease-out);
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Columnas (panel)                                                 */
+  /* ---------------------------------------------------------------- */
+  .sys-cols {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
+    border-top: 0;
+  }
+  @media (max-width: 767.98px) {
+    .sys-cols {
+      margin-inline: calc(-1 * var(--gutter));
+      border-inline: 0;
+    }
+  }
+  @media (min-width: 768px) {
+    .sys-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .sys-cols {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .sys-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 26px var(--gutter) 20px;
+    background: var(--color-paper-2);
+    transition: background-color 0.3s var(--ease-out);
+  }
+  /* Filas alineadas entre columnas (cabecera, título, texto, lista, enlace). */
+  @media (min-width: 768px) {
+    .sys-col {
+      display: grid;
+      grid-row: span 5;
+      grid-template-rows: subgrid;
+      row-gap: 0;
+      padding: 28px 26px 18px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .sys-col {
+      padding-inline: 30px;
+    }
+  }
+  .sys-col::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 3px;
+    background: var(--col-ink);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s var(--ease-out);
+  }
+  .sys-board[data-active="0"] .sys-col[data-col="0"],
+  .sys-board[data-active="1"] .sys-col[data-col="1"],
+  .sys-board[data-active="2"] .sys-col[data-col="2"],
+  .sys-board[data-active="3"] .sys-col[data-col="3"] {
+    background: var(--color-paper);
+  }
+  .sys-board[data-active="0"] .sys-col[data-col="0"]::before,
+  .sys-board[data-active="1"] .sys-col[data-col="1"]::before,
+  .sys-board[data-active="2"] .sys-col[data-col="2"]::before,
+  .sys-board[data-active="3"] .sys-col[data-col="3"]::before {
+    transform: scaleX(1);
+  }
+
+  .sys-col-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sys-col-dash {
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    margin-inline: 10px;
+    vertical-align: middle;
+    background: currentColor;
+  }
+  .sys-col-icon {
+    flex: none;
+    color: var(--col-ink);
+  }
+  .sys-col-title {
+    margin-top: 22px;
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    color: var(--color-ink);
+  }
+  .sys-col-line {
+    margin-top: 10px;
+    max-width: 36ch;
+    color: var(--color-ink-2);
+    line-height: 1.5;
+  }
+  .sys-svc {
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line-strong);
+  }
+  .sys-svc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-block: 11px;
+    border-bottom: 1px solid var(--line);
+    color: var(--color-ink);
+    font-weight: 550;
+    line-height: 1.3;
+  }
+  .sys-svc-node {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    background: var(--col-ink);
+  }
+  .sys-col-cta {
+    margin-top: 12px;
+  }
+  .sys-col-link {
+    color: var(--color-ink);
+  }
+  .sys-col-link:hover {
+    color: var(--color-violet);
+  }
+  .sys-col-wa {
+    flex: none;
+    color: var(--color-green-ink);
+  }
+  @media (min-width: 768px) {
+    .sys-col-title {
+      margin-top: 34px;
+    }
+    .sys-col-line {
+      font-size: 0.9688rem;
+    }
+    .sys-svc-item {
+      font-size: 0.9375rem;
+    }
+    .sys-col-cta {
+      align-self: end;
+      margin-top: 18px;
+    }
+  }
 }

@@ -13,12 +13,12 @@ const archivo = Archivo({
   display: "swap",
 });
 
-// Monoespaciada solo para rótulos técnicos pequeños.
+// Monoespaciada para rótulos técnicos pequeños. Se precarga porque aparece en la
+// pantalla de carga y en el hero: así no cambia de ancho al llegar (sin CLS).
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono-jb",
   display: "swap",
-  preload: false,
 });
 
 export const metadata: Metadata = {

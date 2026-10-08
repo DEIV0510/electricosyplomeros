@@ -24,7 +24,6 @@ export default function Logo({
     <picture style={{ display: 'contents' }}>
       <source type="image/avif" srcSet={SRC('avif')} sizes={sizes} />
       <source type="image/webp" srcSet={SRC('webp')} sizes={sizes} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/brand/logo-640.png"
         srcSet="/brand/logo-640.png 640w, /brand/logo-960.png 960w"

@@ -1,3 +1,403 @@
-/* Dueño: ver DESIGN.md. Todas las reglas dentro de @layer components. */
+/* Pantalla de carga "SISTEMA LISTO" (components/LoadingScreen.tsx). Dueño: boot-nav.
+   La controla el script del <head> (lib/boot.ts) con clases en <html>:
+   is-booting → visible · boot-done → sale (420 ms) · se retira con boot-end.
+   Solo transform/opacity (y stroke-dashoffset en el rombo pequeño). */
+
+@keyframes boot-run {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes boot-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes boot-node-on {
+  from {
+    transform: rotate(45deg) scale(0);
+  }
+  to {
+    transform: rotate(45deg) scale(1);
+  }
+}
+@keyframes boot-halo {
+  from {
+    opacity: 0.85;
+    transform: rotate(45deg) scale(0.45);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(45deg) scale(1.55);
+  }
+}
+@keyframes boot-tick {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes boot-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes boot-stripe {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes boot-label-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -115%, 0);
+  }
+}
+@keyframes boot-label-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 115%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes boot-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
 @layer components {
+  /* Oculto por defecto: sin JS (o con boot-skip) nunca aparece. */
+  .boot-root {
+    display: none;
+  }
+  html.is-booting .boot-root {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow: hidden;
+  }
+  /* En cuanto empieza la salida, deja pasar el puntero a la página. */
+  html.boot-done .boot-root {
+    pointer-events: none;
+  }
+
+  /* Panel que sube y deja ver el hero. */
+  .boot-panel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--color-paper);
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+  html.boot-done .boot-panel {
+    transform: translate3d(0, calc(-100% - 48px), 0);
+    transition: transform 420ms var(--ease-in-out);
+  }
+
+  /* Borde inferior en franjas que se adelgazan (eco del rombo de franjas del logo). */
+  .boot-edge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 46px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-paper) 0 9px,
+      transparent 9px 13px,
+      var(--color-paper) 13px 20px,
+      transparent 20px 24px,
+      var(--color-paper) 24px 29px,
+      transparent 29px 33px,
+      var(--color-paper) 33px 36px,
+      transparent 36px 40px,
+      var(--color-paper) 40px 42px,
+      transparent 42px 45px,
+      var(--color-paper) 45px 46px
+    );
+    pointer-events: none;
+  }
+  .boot-edge::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  /* Cuadrícula técnica muy tenue, que se desvanece hacia los bordes (máscara estática). */
+  .boot-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(58 0 128 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(58 0 128 / 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+    -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 48%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(ellipse 62% 58% at 50% 48%, #000 35%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .boot-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(420px, 78vw);
+    margin-top: -3vh;
+  }
+  html.boot-done .boot-stage {
+    opacity: 0;
+    transform: translate3d(0, -36px, 0);
+    transition:
+      opacity 280ms var(--ease-out) 40ms,
+      transform 380ms var(--ease-in-out);
+  }
+
+  .boot-logo {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+  }
+
+  /* ---------------- Circuito ---------------- */
+  .boot-circuit {
+    --mark: 36px;
+    position: relative;
+    width: 100%;
+    height: 78px;
+    margin-top: clamp(26px, 4.6vh, 44px);
+  }
+
+  /* Línea base: de la fuente al vértice izquierdo del rombo final. */
+  .boot-track {
+    position: absolute;
+    left: 0;
+    right: calc(var(--mark) - 2px);
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--color-paper-3);
+    /* Recorta solo a los lados: el relleno entra desde la izquierda sin asomar. */
+    clip-path: inset(-6px 0 -6px 0);
+  }
+  .boot-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-violet);
+    transform: translate3d(-100%, 0, 0);
+    animation: boot-run 480ms linear 50ms both;
+  }
+  /* Cabeza del pulso: tramo brillante + punto. */
+  .boot-head {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 44px;
+    height: 2px;
+    background: linear-gradient(90deg, rgb(75 46 245 / 0), var(--color-electric));
+    animation: boot-fade-out 160ms var(--ease-out) 540ms both;
+  }
+  .boot-head::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    top: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-electric);
+  }
+
+  /* Fuente: terminal circular al inicio del circuito. */
+  .boot-src {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: var(--color-paper);
+    border: 2px solid var(--color-violet);
+  }
+
+  /* Nodos rombo (ELECTRICIDAD · AGUA · GAS · HOGAR). */
+  .boot-node {
+    position: absolute;
+    left: var(--x);
+    top: 50%;
+    width: 0;
+    height: 0;
+  }
+  .boot-node::before,
+  .boot-node-core {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+  }
+  .boot-node::before {
+    background: var(--color-paper);
+    border: 1.5px solid var(--color-ink-3);
+    transform: rotate(45deg);
+  }
+  .boot-node-core {
+    background: var(--c);
+    transform: rotate(45deg) scale(0);
+    animation: boot-node-on 260ms var(--ease-spring) var(--d) both;
+  }
+  .boot-node-halo {
+    position: absolute;
+    left: -13px;
+    top: -13px;
+    width: 26px;
+    height: 26px;
+    border: 1.5px solid var(--c);
+    opacity: 0;
+    animation: boot-halo 560ms var(--ease-out) var(--d) both;
+  }
+  .boot-node-tick {
+    position: absolute;
+    left: -0.5px;
+    width: 1px;
+    height: 9px;
+    background: var(--c);
+    transform: scaleY(0);
+    animation: boot-tick 180ms var(--ease-out) calc(var(--d) + 60ms) both;
+  }
+  .boot-node[data-side="bottom"] .boot-node-tick {
+    top: 10px;
+    transform-origin: 50% 0;
+  }
+  .boot-node[data-side="top"] .boot-node-tick {
+    bottom: 10px;
+    transform-origin: 50% 100%;
+  }
+  .boot-node-label {
+    position: absolute;
+    left: 0;
+    transform: translateX(-50%);
+    padding-left: 0.14em; /* compensa el tracking final para centrar de verdad */
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink-2);
+  }
+  .boot-node[data-side="bottom"] .boot-node-label {
+    top: 23px;
+  }
+  .boot-node[data-side="top"] .boot-node-label {
+    bottom: 23px;
+  }
+
+  /* Rombo final de franjas: el trazo lo dibuja y las franjas lo llenan. */
+  .boot-mark {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: var(--mark);
+    height: var(--mark);
+    margin-top: calc(var(--mark) / -2);
+    overflow: visible;
+  }
+  .boot-mark-outline {
+    fill: none;
+    stroke: var(--color-violet);
+    stroke-width: 1.75;
+    stroke-linejoin: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: boot-draw 240ms var(--ease-out) 500ms both;
+  }
+  .boot-mark-stripe {
+    fill: var(--color-violet);
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: boot-stripe 220ms var(--ease-out) calc(560ms + var(--i) * 28ms) both;
+  }
+
+  /* ---------------- Rótulo de estado ---------------- */
+  .boot-status {
+    display: grid;
+    margin-top: clamp(18px, 3vh, 30px);
+    padding-block: 2px;
+    font-size: 0.8125rem;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .boot-status > span {
+    grid-area: 1 / 1;
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    padding-left: 0.14em;
+  }
+  .boot-status-a {
+    animation: boot-label-out 200ms var(--ease-in-out) 600ms both;
+  }
+  .boot-status-b {
+    color: var(--color-green-ink);
+    font-weight: 600;
+    opacity: 0;
+    animation: boot-label-in 260ms var(--ease-out) 660ms both;
+  }
+  .boot-status-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-green);
+  }
+  .boot-status-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-green);
+    opacity: 0;
+    animation: boot-ring 640ms var(--ease-out) 720ms both;
+  }
+
+  /* Si la salida llega antes de que termine la secuencia, todo salta al estado final
+     (queda "SISTEMA LISTO" completo mientras el panel sube). */
+  html.boot-done .boot-root *,
+  html.boot-done .boot-root *::before,
+  html.boot-done .boot-root *::after {
+    animation-delay: 0s !important;
+    animation-duration: 1ms !important;
+  }
 }
