@@ -1,0 +1,363 @@
+@import "tailwindcss";
+
+/* Cada sección tiene su propia hoja (un dueño por archivo). Todas declaran sus reglas
+   dentro de @layer components para que las utilidades de Tailwind puedan sobrescribirlas. */
+@import "../styles/boot.css";
+@import "../styles/nav.css";
+@import "../styles/hero.css";
+@import "../styles/diagnostic.css";
+@import "../styles/systems.css";
+@import "../styles/sections.css";
+
+/* ------------------------------------------------------------------ */
+/*  Tokens                                                             */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Superficie clara (papel técnico) */
+  --color-paper: #f6f5f9;
+  --color-paper-2: #edeaf3;
+  --color-paper-3: #e2ddec;
+  /* Tinta */
+  --color-ink: #14101f;
+  --color-ink-2: #3f3a4d;
+  --color-ink-3: #655e78;
+  /* Marca: morado del logo + evolución a azul eléctrico */
+  --color-violet: #3a0080;
+  --color-violet-2: #5520a8;
+  --color-electric: #4b2ef5;
+  /* Verde del logo: acciones, WhatsApp, estado "listo" */
+  --color-green: #00c000;
+  --color-green-2: #00ad00;
+  --color-green-ink: #006e14;
+  /* Sistemas (solo trazos y acentos pequeños, nunca grandes rellenos) */
+  --color-water: #0b86c4;
+  --color-gas: #e0691f;
+  /* Superficie oscura (tablero) */
+  --color-night: #0d0918;
+  --color-night-2: #151026;
+  --color-night-3: #211a38;
+  --color-mist: #f3f1f8;
+  --color-mist-2: #b9b2cf;
+  --color-mist-3: #8a83a3;
+  --color-electric-glow: #9d8cff;
+  --color-water-glow: #4cc3f5;
+  --color-gas-glow: #ff9a57;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  --breakpoint-xs: 25rem;
+}
+
+:root {
+  --nav-h: 64px;
+  --gutter: clamp(16px, 4.2vw, 40px);
+  --maxw: 1320px;
+  --line: rgb(58 0 128 / 0.1);
+  --line-strong: rgb(58 0 128 / 0.22);
+  --line-night: rgb(157 140 255 / 0.14);
+}
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 76px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 8px);
+    overflow-anchor: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: var(--color-paper);
+  }
+  html.is-booting {
+    overflow: hidden;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-violet);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-electric);
+    outline-offset: 3px;
+  }
+  a,
+  button,
+  [role="button"],
+  label,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  button:not(:disabled),
+  [role="button"],
+  summary {
+    cursor: pointer;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  textarea,
+  input,
+  button,
+  select {
+    font: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Primitivas compartidas                                             */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .container-x {
+    width: 100%;
+    max-width: var(--maxw);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Titulares: Archivo expandido, eco del wordmark ancho del logo */
+  .t-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 118%;
+    text-transform: uppercase;
+    letter-spacing: -0.012em;
+    line-height: 0.94;
+  }
+  .t-title {
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-stretch: 112%;
+    letter-spacing: -0.005em;
+    line-height: 1.08;
+  }
+  .t-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .t-lead {
+    font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+    line-height: 1.5;
+    color: var(--color-ink-2);
+  }
+
+  /* Botones / CTAs */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    min-height: 52px;
+    padding: 0.85rem 1.4rem;
+    border-radius: 2px;
+    font-family: var(--font-display);
+    font-weight: 750;
+    font-stretch: 108%;
+    font-size: 0.9375rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background-color 0.2s var(--ease-out),
+      color 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out),
+      box-shadow 0.2s var(--ease-out),
+      transform 0.15s var(--ease-out);
+    user-select: none;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn .btn-arrow {
+    transition: transform 0.25s var(--ease-out);
+  }
+  .btn:hover .btn-arrow,
+  .btn:focus-visible .btn-arrow {
+    transform: translateX(4px);
+  }
+  .btn-primary {
+    background: var(--color-green);
+    color: var(--color-ink);
+    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.14);
+  }
+  .btn-primary:hover {
+    background: var(--color-green-2);
+  }
+  .btn-primary:focus-visible {
+    outline-color: var(--color-ink);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-ink);
+    border: 1.5px solid var(--color-ink);
+  }
+  .btn-secondary:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .btn-on-dark {
+    background: transparent;
+    color: var(--color-mist);
+    border: 1.5px solid rgb(243 241 248 / 0.55);
+  }
+  .btn-on-dark:hover {
+    background: var(--color-mist);
+    color: var(--color-night);
+    border-color: var(--color-mist);
+  }
+  .on-dark :focus-visible {
+    outline-color: var(--color-electric-glow);
+  }
+  .on-dark .btn-primary:focus-visible {
+    outline-color: var(--color-mist);
+  }
+  .btn-lg {
+    min-height: 64px;
+    padding: 1.1rem 1.8rem;
+    font-size: 1.0625rem;
+  }
+
+  /* Enlace de texto con flecha */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    font-weight: 650;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.3em;
+    transition: color 0.2s var(--ease-out);
+  }
+  .link-arrow svg {
+    transition: transform 0.25s var(--ease-out);
+  }
+  .link-arrow:hover svg {
+    transform: translateX(4px);
+  }
+
+  /* Marcas de esquina de plano técnico (usa currentColor) */
+  .ticks {
+    position: relative;
+  }
+  .ticks::before,
+  .ticks::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .ticks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1.5px solid currentColor;
+    border-left: 1.5px solid currentColor;
+  }
+  .ticks::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+  }
+
+  /* Cuadrícula técnica de fondo */
+  .bg-grid {
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+  .bg-grid-night {
+    background-image:
+      linear-gradient(var(--line-night) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-night) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  /* Enlace "Saltar al contenido": visible solo con teclado */
+  .skip-link {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    padding: 0.75rem 1rem;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-weight: 700;
+    transform: translateY(-160%);
+    transition: transform 0.2s var(--ease-out);
+  }
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  /* Revelado al hacer scroll (lo activa RevealController). Sin JS todo es visible. */
+  html.js [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition:
+      opacity 0.7s var(--ease-out),
+      transform 0.7s var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  html.js [data-reveal].is-in,
+  html.reveal-fallback [data-reveal],
+  html.rm [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Pausa de animaciones decorativas fuera de pantalla o en equipos lentos */
+  [data-paused="true"] *,
+  [data-paused="true"]::before,
+  [data-paused="true"]::after,
+  html.lite .anim-loop,
+  html.lite .anim-loop * {
+    animation-play-state: paused !important;
+  }
+}
