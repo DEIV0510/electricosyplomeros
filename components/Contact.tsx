@@ -1,6 +1,6 @@
-import { CONTACT } from '@/lib/content';
+import { CONTACT, SOCIAL } from '@/lib/content';
 import { CallLink, WhatsAppLink } from '@/components/ui/Cta';
-import { IconArrowRight, IconFacebook, IconPhone } from '@/components/ui/Icons';
+import { IconArrowRight, IconPhone, SOCIAL_ICONS } from '@/components/ui/Icons';
 import SectionTag from '@/components/ui/SectionTag';
 import PowerRing from '@/components/sections/PowerRing';
 
@@ -50,14 +50,26 @@ export default function Contact() {
                     </CallLink>
                   </li>
                   <li>
-                    <a href={CONTACT.facebookUrl} target="_blank" rel="noopener noreferrer" className="ct-row">
-                      <span className="ct-row-label" aria-hidden="true">
+                    {/* Una celda, tres enlaces: Facebook, Instagram y TikTok */}
+                    <div className="ct-row ct-social">
+                      <span className="ct-row-label" id="ct-redes">
                         Redes
                       </span>
-                      <span className="ct-row-value">Síguenos en Facebook</span>
-                      <IconFacebook className="ct-row-icon" size={22} />
-                      <span className="sr-only"> (se abre Facebook)</span>
-                    </a>
+                      <span className="ct-row-value">Síguenos</span>
+                      <ul className="ct-social-list" aria-labelledby="ct-redes">
+                        {SOCIAL.map((s) => {
+                          const Icon = SOCIAL_ICONS[s.id];
+                          return (
+                            <li key={s.id}>
+                              <a href={s.url} target="_blank" rel="noopener noreferrer" className="ct-social-link">
+                                <Icon size={20} />
+                                <span className="sr-only">{s.label} (se abre en una pestaña nueva)</span>
+                              </a>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   </li>
                 </ul>
 

@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import CircuitRail from "@/components/CircuitRail";
 import RevealController from "@/components/RevealController";
-import { BRAND, CITIES, CONTACT, SITE_URL, SYSTEMS } from "@/lib/content";
+import { BRAND, CITIES, CONTACT, SITE_URL, SOCIAL, SYSTEMS } from "@/lib/content";
 
 // Datos estructurados (negocio local). Solo información entregada por el cliente:
 // sin dirección, horarios, reseñas ni precios.
@@ -24,7 +24,7 @@ const jsonLd = {
   logo: `${SITE_URL}/brand/logo-960.png`,
   image: `${SITE_URL}/brand/logo-960.png`,
   telephone: CONTACT.phoneE164,
-  sameAs: [CONTACT.facebookUrl],
+  sameAs: SOCIAL.map((s) => s.url),
   areaServed: CITIES.map((c) => ({
     "@type": "City",
     name: c.name,

@@ -21,7 +21,7 @@ export default function NotFound() {
             <span aria-hidden="true" className="inline-block size-2 rotate-45 bg-violet" />
             Error 404
           </p>
-          <h1 className="t-display text-[clamp(2.1rem,6vw,4rem)]">
+          <h1 className="t-display text-[min(9vw,clamp(2.1rem,6vw,4rem))]">
             No encontramos <span className="text-violet">esta página.</span>
           </h1>
           <p className="t-lead mt-5 max-w-xl">
@@ -29,8 +29,8 @@ export default function NotFound() {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <WhatsAppLink>Cotizar por WhatsApp</WhatsAppLink>
-          <Link href="/" className="btn btn-secondary">
+          <WhatsAppLink className="max-[359.98px]:px-4">Cotizar por WhatsApp</WhatsAppLink>
+          <Link href="/" className="btn btn-secondary max-[359.98px]:px-4">
             <IconArrowLeft size={20} />
             <span>Volver al inicio</span>
           </Link>

@@ -1196,10 +1196,17 @@
   .dx-row-k {
     color: var(--color-mist-3);
   }
+  /* Las respuestas envuelven (nunca se cortan); solo el texto libre de Detalles se
+     resume en una línea porque está completo en su campo. */
   .dx-row-v {
-    overflow: hidden;
+    min-width: 0;
     font-size: 0.9375rem;
     font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+  .dx-row[data-row="5"] .dx-row-v {
+    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
@@ -1806,11 +1813,17 @@
   }
   .dx-success-actions {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     margin-top: 6px;
   }
   .dx-success-actions .dx-copy {
     padding-inline: 1rem;
+  }
+  .dx-success-actions .dx-copy,
+  .dx-success-actions .dx-again {
+    white-space: normal;
+    text-align: left;
   }
   .dx-copy svg {
     flex: none;

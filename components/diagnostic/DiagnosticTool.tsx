@@ -184,17 +184,36 @@ function scrollByDy(dy: number) {
   if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: reducedMotion() ? 'auto' : 'smooth' });
 }
 
+/**
+ * Desplazamiento vertical que la animación de entrada (dx-console-in: 14px → 0) le aplica
+ * en este instante al marco. La franja visible (visibleBand) sale del layout, sin
+ * transform; las medidas del ancla y de la acción se corrigen con esto para alinear con su
+ * posición FINAL. Sin la corrección, al abrir la consola (paso 2) el scroll quedaba ~14px
+ * desfasado y el rótulo de la pregunta quedaba bajo la barra fija.
+ */
+function enteringOffset(frame: HTMLElement | null): number {
+  if (!frame) return 0;
+  const t = getComputedStyle(frame).transform;
+  if (!t || t === 'none') return 0;
+  try {
+    return new DOMMatrixReadOnly(t).m42;
+  } catch {
+    return 0;
+  }
+}
+
 function ensureVisible(action: HTMLElement | null, root: HTMLElement) {
   const { sticky, top, bottom } = visibleBand(root);
   const frame = root.querySelector<HTMLElement>('[data-dx-frame]');
   const anchor = (sticky ? root.querySelector<HTMLElement>('.dx-q') : null) ?? frame;
   if (!anchor) return;
-  const aTop = anchor.getBoundingClientRect().top;
+  const off = enteringOffset(frame);
+  const aTop = anchor.getBoundingClientRect().top - off;
   let dy = 0;
   if (aTop < top - 1) {
     dy = aTop - top;
   } else if (action) {
-    const over = action.getBoundingClientRect().bottom - bottom;
+    const over = action.getBoundingClientRect().bottom - off - bottom;
     if (over > 0) dy = Math.min(over, aTop - top);
   }
   scrollByDy(dy);

@@ -22,7 +22,9 @@ export default function MotionToggle({ className }: { className?: string }) {
     }
   };
   return (
-    <button type="button" onClick={toggle} aria-pressed={paused} className={cx('motion-toggle', className)}>
+    // El texto visible ya dice la acción (Pausar / Reanudar): sin aria-pressed, que con un
+    // rótulo cambiante anunciaría "Reanudar animaciones, presionado" (estado contrario).
+    <button type="button" onClick={toggle} className={cx('motion-toggle', className)}>
       <span aria-hidden="true" className="motion-toggle-icon">
         {paused ? (
           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">

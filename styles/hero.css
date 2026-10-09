@@ -549,6 +549,15 @@
      331px de "Encontrar una solución"): los CTA caben sin cortarse. Dos clases porque
      .btn se declara después (globals.css). Si aun así no cupieran (texto más grande del
      sistema), el texto se parte en dos líneas en vez de desbordar. */
+  @media (min-width: 640px) and (max-width: 719.98px), (min-width: 1024px) and (max-width: 1339.98px),
+    (orientation: landscape) and (max-height: 520px) and (min-width: 760px) and (max-width: 1023.98px) {
+    /* Aquí los dos botones no caben en una fila: columna única a la medida del más ancho,
+       así quedan apilados y del mismo ancho (sin bordes derechos desparejos). */
+    .hero-ctas {
+      display: grid;
+      justify-content: start;
+    }
+  }
   @media (max-width: 399.98px),
     (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 759.98px) {
     .hero-ctas .btn {
@@ -668,6 +677,9 @@
   @media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 759.98px) {
     .hero-ctas {
       flex-direction: column;
+    }
+    .hero-ctas {
+      display: flex;
     }
     .hero-ctas .btn {
       width: 100%;

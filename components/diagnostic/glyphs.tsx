@@ -143,7 +143,7 @@ const SCOPE_W = 280;
 const SCOPE_H = 84;
 export const SCOPE_TRACE: Record<SystemId | 'none', string> = {
   electricidad:
-    'M0 54H34l8-28 8 32 8-36 8 32H110l8-24 8 32 8-36 8 28H186l8-26 8 32 8-36 8 30H280',
+    'M0 54H24l8-24h28l8 24H92l8-24h28l8 24H160l8-24h28l8 24H228l8-24h28l8 24H280',
   plomeria: wave(0, 280, 42, 15, 70, 0, 4),
   gas: wave(0, 280, 44, 6, 140, 20, 4),
   hogar: 'M0 64H60V40L100 14l40 26v24H164V50h18v14H280',

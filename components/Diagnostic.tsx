@@ -19,12 +19,11 @@ export default function Diagnostic() {
             <h2 id="dx-title" className="t-display dx-h2">
               <span className="block">Algo no está</span>{' '}
               {/* Acento de titular sobre paper: segunda línea en violet (DESIGN §2).
-                  <wbr>: si el usuario amplía el espaciado de texto (WCAG 1.4.12) y la palabra
-                  ya no cabe, parte por sílaba ("FUNCIO / NANDO.") y no letra suelta. No añade
-                  caracteres al texto ni cambia nada mientras la palabra quepa entera. */}
-              <span className="block dx-h2-accent">
-                funcio<wbr />nando.
-              </span>
+                  Guion suave (U+00AD): si el usuario amplía el espaciado de texto (WCAG 1.4.12)
+                  y la palabra ya no cabe, parte por sílaba ("FUNCIO- / NANDO.") y no letra
+                  suelta. A diferencia de <wbr>, el nombre accesible sigue siendo una sola
+                  palabra ("funcionando"). */}
+              <span className="block dx-h2-accent">{'funcio­nando.'}</span>
             </h2>
           </div>
           <div className="dx-head-side" data-reveal style={{ '--reveal-delay': '100ms' } as CSSProperties}>

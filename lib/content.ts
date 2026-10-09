@@ -19,7 +19,18 @@ export const CONTACT = {
   telHref: 'tel:+573138948186',
   whatsappNumber: '573138948186',
   facebookUrl: 'https://www.facebook.com/profile.php?id=100083289071863',
+  instagramUrl: 'https://www.instagram.com/electricosyplomeros/reels/',
+  tiktokUrl: 'https://www.tiktok.com/@electricos.y.plom',
 } as const;
+
+/** Redes sociales oficiales (entregadas por el cliente). */
+export const SOCIAL = [
+  { id: 'facebook', label: 'Facebook', url: CONTACT.facebookUrl },
+  { id: 'instagram', label: 'Instagram', url: CONTACT.instagramUrl },
+  { id: 'tiktok', label: 'TikTok', url: CONTACT.tiktokUrl },
+] as const;
+
+export type SocialId = (typeof SOCIAL)[number]['id'];
 
 /** Dominio público. Se usa para metadatos absolutos (Open Graph, sitemap, JSON-LD). */
 export const SITE_URL = 'https://electricosyplomeros.vercel.app';

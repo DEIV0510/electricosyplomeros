@@ -602,6 +602,7 @@
     max-width: 36ch;
     color: var(--color-ink-2);
     line-height: 1.5;
+    text-wrap: balance;
   }
   .sys-svc {
     margin: 20px 0 0;
@@ -618,6 +619,7 @@
     color: var(--color-ink);
     font-weight: 550;
     line-height: 1.3;
+    text-wrap: balance;
   }
   /* Rombo centrado en la PRIMERA línea (los ítems de dos líneas no lo bajan al medio). */
   .sys-svc-node {

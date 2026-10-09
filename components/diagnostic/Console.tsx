@@ -164,7 +164,9 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
               const v = valueText(s.a, step);
               const current = s.view === step;
               // Nombre accesible limpio: "Lugar: pendiente. Ir a este paso" (sin leer la raya).
-              const spoken = v && v.length > 60 ? `${v.slice(0, 57).trimEnd()}…` : v;
+              const cut = v && v.length > 60 ? `${v.slice(0, 57).trimEnd()}…` : v;
+              // Sin puntuación final: evita "…baño.. Cambiar".
+              const spoken = cut?.replace(/[.!?¡¿…,;:]+$/u, '');
               return (
                 <li key={step}>
                   <button
@@ -176,7 +178,7 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
                     onClick={() => onGo(step)}
                     data-row={step}
                   >
-                    <span className="t-label dx-row-k">{STEP_META[step].label}</span>
+                    <span className="t-label dx-row-k">{STEP_META[step].label}</span>{' '}
                     <span className="dx-row-v">{v ?? <span aria-hidden="true">—</span>}</span>
                     <span className="dx-row-s" aria-hidden="true">
                       {v ? <IconCheck size={16} strokeWidth={2.25} /> : null}

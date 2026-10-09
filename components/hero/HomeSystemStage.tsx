@@ -18,14 +18,16 @@ const EPS = 0.002;
 const Y_DAMP = 0.3;
 /** Reposo entre pasadas de los flujos en táctiles (la pasada dura --run ≈ 2,4 s en CSS). */
 const REST_MS = 5000;
+/** Pasadas automáticas en táctiles tras cada entrada en pantalla; luego queda quieta (CPU). */
+const MAX_AUTO_PASSES = 2;
 
 /**
  * Escenario interactivo del HomeSystem.
  * - Pausa todo lo animado cuando sale de pantalla (data-paused).
  * - Flujos (stroke-dashoffset: pulso eléctrico, agua, gas y luminarias): nunca infinitos.
  *   Una pasada tras la secuencia de entrada; luego se repite al volver a entrar en
- *   pantalla, al entrar el puntero (fino) y, en táctiles, cada REST_MS de reposo mientras
- *   se vea. Nunca con movimiento reducido, `lite` ni animaciones pausadas (footer).
+ *   pantalla, al entrar el puntero (fino), al tocar el dibujo y, en táctiles, hasta
+ *   MAX_AUTO_PASSES veces más tras REST_MS de reposo; después queda quieta (sin gastar CPU). Nunca con movimiento reducido, `lite` ni animaciones pausadas (footer).
  * - Solo con puntero fino (y sin `rm` / `lite` / pausa): parallax por capas con lerp en
  *   un rAF que se detiene al converger, halo que sigue al cursor, nodos que se encienden
  *   cerca del puntero y resaltado del sistema bajo el cursor. Nada de esto corre en táctiles.
@@ -58,6 +60,7 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
     let restTimer = 0;
     let raf = 0;
     let pointerInside = false;
+    let autoPasses = 0;
 
     const start = () => {
       if (running || !live.current.inView || !live.current.allowed) return;
@@ -78,7 +81,11 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
       running = false;
       // Táctil (sin puntero que la despierte) o puntero aún encima: otra pasada tras
       // un reposo. Si no, queda quieta hasta volver a entrar en pantalla o el puntero.
-      if (!mqFine.matches || pointerInside) {
+      if (pointerInside) {
+        window.clearTimeout(restTimer);
+        restTimer = window.setTimeout(start, REST_MS);
+      } else if (!mqFine.matches && autoPasses < MAX_AUTO_PASSES) {
+        autoPasses++;
         window.clearTimeout(restTimer);
         restTimer = window.setTimeout(start, REST_MS);
       }
@@ -95,14 +102,22 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
       if (mqFine.matches) window.clearTimeout(restTimer);
     };
 
+    // Tocar el dibujo lo despierta (táctil): una pasada más.
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') restartRef.current();
+    };
+
     restartRef.current = () => {
+      autoPasses = 0;
       window.clearTimeout(restTimer);
       start();
     };
     root.addEventListener('animationend', onEnd);
     root.addEventListener('pointerenter', onEnter);
     root.addEventListener('pointerleave', onLeave);
+    root.addEventListener('pointerdown', onDown);
     return () => {
+      root.removeEventListener('pointerdown', onDown);
       root.removeEventListener('animationend', onEnd);
       root.removeEventListener('pointerenter', onEnter);
       root.removeEventListener('pointerleave', onLeave);

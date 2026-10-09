@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 import Logo from '@/components/ui/Logo';
 import { CallLink } from '@/components/ui/Cta';
-import { IconArrowDown, IconFacebook, IconWhatsApp } from '@/components/ui/Icons';
+import { IconArrowDown, IconWhatsApp, SOCIAL_ICONS } from '@/components/ui/Icons';
 import MotionToggle from '@/components/ui/MotionToggle';
-import { BRAND, CITIES, CONTACT, SYSTEMS } from '@/lib/content';
+import { BRAND, CITIES, SOCIAL, SYSTEMS } from '@/lib/content';
 import { WHATSAPP_DEFAULT_URL } from '@/lib/whatsapp';
 
 /**
@@ -90,13 +90,18 @@ export default function Footer() {
                     <span className="sr-only"> (se abre WhatsApp)</span>
                   </a>
                 </li>
-                <li>
-                  <a href={CONTACT.facebookUrl} target="_blank" rel="noopener noreferrer" className="ft-link ft-link-icon">
-                    <IconFacebook size={18} />
-                    <span>Síguenos en Facebook</span>
-                    <span className="sr-only"> (se abre Facebook)</span>
-                  </a>
-                </li>
+                {SOCIAL.map((s) => {
+                  const Icon = SOCIAL_ICONS[s.id];
+                  return (
+                    <li key={s.id}>
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="ft-link ft-link-icon">
+                        <Icon size={18} />
+                        <span>{s.label}</span>
+                        <span className="sr-only"> (se abre en una pestaña nueva)</span>
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>

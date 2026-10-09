@@ -728,6 +728,16 @@
   .ft-link:hover {
     color: var(--color-violet);
   }
+  /* Enlaces con viñeta (servicios, ciudades): el rombo va en la PRIMERA línea; los de una
+     línea siguen midiendo 44px ((44 − 1.25em) / 2 arriba y abajo). */
+  .ft-link:not(.ft-link-icon) {
+    align-items: flex-start;
+    padding-block: calc((44px - 1.25em) / 2);
+    text-wrap: balance;
+  }
+  .ft-link:not(.ft-link-icon) .ft-bullet {
+    margin-top: calc((1.25em - 6px) / 2);
+  }
   .ft-bullet {
     flex: none;
     width: 6px;
@@ -801,6 +811,9 @@
     }
   }
   @media (min-width: 1024px) {
+    .ft-cols {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.75fr) minmax(0, 1.3fr);
+    }
     .ft-main {
       grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
       gap: 48px;

@@ -184,7 +184,7 @@ SVG propio (viewBox sugerido 0 0 600 540), trazado técnico limpio:
 - **Agua** (`water`): tubería desde abajo/derecha (acometida) que sube a baño y cocina; trazo de 3px estilo tubo (línea gruesa clara + línea fina interior). **Flujo**: guiones que avanzan continuamente, más lentos.
 - **Gas** (`gas`): línea fina discontinua desde un medidor exterior (cajita en el muro derecho) hasta la estufa (quemador: círculo con 3 llamitas mínimas). Movimiento muy lento, cálido y sutil.
 - **Hogar**: el anillo verde de encendido (eco del logo) como nodo principal del sistema; ~10–14 nodos (círculos r≈4) en uniones.
-- **Rótulos**: `01 ENERGÍA`, `02 AGUA`, `03 GAS`, `04 HOGAR` en mono con líneas guía. Como HTML posicionado en % sobre el SVG (para que el tamaño de letra no baje de 11–12px). En móvil, reemplazar por una leyenda debajo (4 ítems con muestra de trazo de color).
+- **Rótulos**: `01 ENERGÍA`, `02 AGUA`, `03 GAS`, `04 HOGAR` (decisión: en el hero se mantiene **HOGAR**, palabra del cliente para el sistema del hero; en Servicios y Diagnóstico es **04 SOPORTE**, también del cliente) en mono con líneas guía. Como HTML posicionado en % sobre el SVG (para que el tamaño de letra no baje de 11–12px). En móvil, reemplazar por una leyenda debajo (4 ítems con muestra de trazo de color).
 - Lectura de estado arriba a la derecha: `ESTADO: DETECTANDO…` → `ESTADO: SISTEMA LISTO` (sin cifras inventadas).
 
 Interacción con el puntero (solo `(hover:hover) and (pointer:fine)`, sin `rm` ni `lite`):
