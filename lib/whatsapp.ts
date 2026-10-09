@@ -30,14 +30,16 @@ export type DiagnosticAnswers = {
 
 /** Mensaje del mini diagnóstico, con el formato pedido por el cliente. */
 export function diagnosticMessage(a: DiagnosticAnswers): string {
+  // La primera línea es fija (formato pedido por el cliente); el nombre va en su propia línea.
   const lines = [
-    a.name?.trim() ? `Hola, soy ${a.name.trim()}. Quiero solicitar una cotización.` : 'Hola, quiero solicitar una cotización.',
+    'Hola, quiero solicitar una cotización.',
     '',
     `Servicio: ${a.service}`,
     `Problema: ${a.problem}`,
     `Lugar: ${a.place}`,
     `Ciudad: ${a.city}`,
   ];
+  if (a.name?.trim()) lines.push(`Nombre: ${a.name.trim()}`);
   if (a.details.trim()) lines.push(`Detalles: ${a.details.trim()}`);
   lines.push('', 'Quisiera recibir información.');
   return lines.join('\n');

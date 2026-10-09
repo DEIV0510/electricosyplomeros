@@ -78,7 +78,7 @@
     transform: scaleX(0);
   }
   to {
-    transform: scaleX(1);
+    transform: none;
   }
 }
 @keyframes hs-alert {
@@ -172,22 +172,29 @@
     opacity: 1;
   }
 }
+/* Flujos: UNA pasada de --run (≈2,4 s) cada vez, nunca infinitos (stroke-dashoffset
+   cuesta un fotograma de hilo principal por tick). Cada pasada termina en un fotograma
+   idéntico al de reposo (múltiplo exacto del periodo del guion; pulso fuera del trazo;
+   luminarias apagadas), así reiniciarla no produce saltos. */
+/* Agua: guion 5 + hueco 9 = periodo 14 → 4 periodos, con arranque y frenado suaves. */
 @keyframes hs-flow {
   to {
-    stroke-dashoffset: -14;
+    stroke-dashoffset: -56;
   }
 }
+/* Gas: guion 3 + hueco 5 = periodo 8 → 1 periodo, lento y sutil. */
 @keyframes hs-gas-flow {
   to {
     stroke-dashoffset: -8;
   }
 }
-/* Pulso eléctrico A: acometida → tablero → alcoba → baño (pathLength 1000). */
+/* Pulso eléctrico A: acometida → tablero → alcoba → baño (pathLength 1000).
+   Viaja en ≈1,85 s (77 % de la pasada) y la cola deja apagarse la última luminaria. */
 @keyframes hs-pulse-a {
   0% {
     stroke-dashoffset: 50;
   }
-  60%,
+  77%,
   100% {
     stroke-dashoffset: -1010;
   }
@@ -195,62 +202,63 @@
 /* Pulso B: tablero → sala. Sale cuando A llega al tablero. */
 @keyframes hs-pulse-b {
   0%,
-  19% {
+  24.4% {
     stroke-dashoffset: 160;
   }
-  37%,
+  47.6%,
   100% {
     stroke-dashoffset: -1010;
   }
 }
+/* Luminarias: se encienden al paso del pulso (mismos tiempos que el pulso). */
 @keyframes hs-lamp-a {
   0%,
-  25% {
+  32.1% {
     opacity: 0;
   }
-  28% {
+  36% {
     opacity: 0.9;
   }
-  44%,
+  56.6%,
   100% {
     opacity: 0;
   }
 }
 @keyframes hs-lamp-b {
   0%,
-  33% {
+  42.4% {
     opacity: 0;
   }
-  36% {
+  46.3% {
     opacity: 0.9;
   }
-  52%,
+  66.9%,
   100% {
     opacity: 0;
   }
 }
 @keyframes hs-lamp-c {
   0%,
-  42% {
+  54% {
     opacity: 0;
   }
-  45% {
+  57.9% {
     opacity: 0.9;
   }
-  61%,
+  78.4%,
   100% {
     opacity: 0;
   }
 }
 @keyframes hs-lamp-d {
   0%,
-  57% {
+  73.3% {
     opacity: 0;
   }
-  60% {
+  77.1% {
     opacity: 0.9;
   }
-  76%,
+  97.7%,
   100% {
     opacity: 0;
   }
@@ -266,25 +274,24 @@
     transform: scale(1.85);
   }
 }
+/* Táctil: cada nodo se enciende una vez por pasada (0,8 s, escalonado por --i). */
 @keyframes hs-node-seq {
   0%,
-  11%,
   100% {
     transform: none;
   }
-  4%,
-  7% {
+  35%,
+  60% {
     transform: scale(1.6);
   }
 }
 @keyframes hs-node-core {
   0%,
-  11%,
   100% {
     opacity: 0;
   }
-  4%,
-  7% {
+  35%,
+  60% {
     opacity: 1;
   }
 }
@@ -293,17 +300,15 @@
   /* ================================================================ */
   /*  Hero                                                            */
   /* ================================================================ */
+  /* Alto = contenido (anclado ARRIBA, sin min-height ni mt-auto): así en 1440×900 y
+     1920×1080 asoma el rótulo de la sección siguiente en vez de una banda vacía. El aire
+     superior crece con la altura de la ventana (svh), no con el ancho. */
   .hero {
     --k: 1;
     background: var(--color-paper);
   }
   html.boot-skip .hero {
     --k: 0.62;
-  }
-  @media (min-width: 1024px) {
-    .hero {
-      min-height: min(calc(100svh - 40px), 900px);
-    }
   }
 
   .hero-bg {
@@ -315,8 +320,97 @@
   }
 
   .hero-inner {
+    /* Una sola columna que nunca crece por el min-content de sus hijos (botones, rótulos
+       nowrap): sin esto, a 320px la columna medía 331px y el overflow-x:clip cortaba el
+       borde derecho de los CTA, la lectura de estado y la leyenda. En ≥1024 la utilidad
+       lg:grid-cols-[…] la reemplaza. */
+    grid-template-columns: minmax(0, 1fr);
     padding-top: calc(var(--nav-h) + clamp(28px, 22svh - 140px, 132px));
     padding-bottom: clamp(48px, 7vh, 80px);
+  }
+  /* Escritorio: en 1440×900 el bloque de la sección 2 (rótulo + inicio del H2) debe
+     quedar por encima de ~92 % del alto, donde RevealController ya lo muestra. */
+  @media (min-width: 1024px) {
+    .hero-inner {
+      padding-top: calc(var(--nav-h) + clamp(24px, 22svh - 160px, 132px));
+      padding-bottom: clamp(32px, 4svh, 56px);
+    }
+  }
+
+  /* Rótulo de marca (el logo del menú es pequeño: aquí se lee el nombre) */
+  .hero-brand-name {
+    color: var(--color-ink-2);
+    font-weight: 600;
+  }
+  .hero-brand-tag {
+    color: var(--color-ink-3);
+  }
+  @media (max-width: 639.98px) {
+    .hero-brand-tag {
+      display: none;
+    }
+  }
+
+  /* Ritmo vertical de la columna de texto (en CSS y no en utilidades para poder
+     compactarlo en móviles horizontales) */
+  .hero-ask {
+    margin-top: 28px;
+  }
+  .hero-title {
+    margin-top: 12px;
+  }
+  .hero-lead {
+    margin-top: 28px;
+  }
+  .hero-ctas {
+    margin-top: 32px;
+  }
+  .hero-facts {
+    margin-top: 24px;
+  }
+  @media (min-width: 1024px) {
+    .hero-ask {
+      margin-top: 32px;
+    }
+    .hero-lead {
+      margin-top: 32px;
+    }
+  }
+
+  /* CTA y fila de datos: apilados (botones a ancho completo) en teléfonos, en fila desde
+     640px y otra vez apilados en móviles horizontales estrechos (bloque landscape, abajo).
+     Dos clases en los botones porque .btn se declara después (globals.css). */
+  .hero-ctas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .hero-ctas .btn {
+    width: 100%;
+  }
+  /* Los íconos nunca ceden su ancho cuando el texto aprieta el botón. */
+  .hero-ctas .btn svg {
+    flex: none;
+  }
+  .hero-facts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  @media (min-width: 640px) {
+    .hero-ctas {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .hero-ctas .btn {
+      width: auto;
+    }
+    .hero-facts {
+      flex-direction: row;
+      align-items: center;
+      gap: 1.5rem;
+    }
   }
 
   /* Pregunta inicial: rótulo técnico grande, con cursor breve */
@@ -344,30 +438,50 @@
     opacity: 0;
   }
 
-  /* H1 */
+  /* H1: el pico tipográfico de la página (DESIGN §2). ≈59px a 1024, ≈76px a 1440,
+     80px a 1920, ≈96px a 2560. Por debajo de 360px lo limita el ancho (10.9vw → 34.9px
+     a 320). Techo real: la línea más ancha ("TENEMOS LA") mide ≈7,95em y la columna de
+     texto en escritorio es 11/20 del contenedor (660px con --maxw 1320, 792px con 1560). */
   .hero-title {
-    font-size: clamp(2.4rem, 10.9vw, 4.6rem);
+    font-size: clamp(2.1rem, 10.9vw, 4.6rem);
   }
   @media (min-width: 1024px) {
     .hero-title {
-      font-size: clamp(3.2rem, 5.3vw, 4.9rem);
+      font-size: clamp(3.4rem, 1rem + 4.2vw, 4.9rem);
     }
   }
+  @media (min-width: 1920px) {
+    .hero-title {
+      font-size: 5rem;
+    }
+  }
+  @media (min-width: 2200px) {
+    .hero-title {
+      font-size: clamp(5rem, 3.75vw, 6.2rem);
+    }
+  }
+  /* Cada frase empieza en su línea (display:block). Sin nowrap: si el visitante agranda
+     el espaciado del texto (WCAG 1.4.12) la frase se parte en vez de perder letras bajo
+     el overflow-x:clip de la sección. */
   .hero-line {
     display: block;
-    white-space: nowrap;
+    overflow-wrap: break-word;
   }
+  /* En línea (no inline-block): un inline-block hace que Chrome lea "SOLUCIÓN ." con
+     un espacio antes del punto en el nombre accesible. */
   .hero-solve {
     position: relative;
-    display: inline-block;
     color: var(--color-violet);
   }
-  /* Indicador de "encendido": barra verde bajo SOLUCIÓN */
-  .hero-power {
+  /* Indicador de "encendido": barra verde bajo SOLUCIÓN. Es un pseudo-elemento vacío,
+     así no aparece en el texto copiado ni en el nombre accesible del H1. (bottom medido
+     sobre la caja de contenido de la línea: misma posición que tenía la barra). */
+  .hero-solve::after {
+    content: "";
     position: absolute;
     left: 0.03em;
     right: 0.02em;
-    bottom: -0.11em;
+    bottom: -0.043em;
     height: max(5px, 0.075em);
     background: var(--color-green);
     transform-origin: 0 50%;
@@ -430,6 +544,169 @@
     }
   }
 
+  /* Teléfonos angostos (< 400px) y la columna de texto de los móviles horizontales
+     estrechos (600–760px de ancho: 290–340px de columna, menos que el min-content de
+     331px de "Encontrar una solución"): los CTA caben sin cortarse. Dos clases porque
+     .btn se declara después (globals.css). Si aun así no cupieran (texto más grande del
+     sistema), el texto se parte en dos líneas en vez de desbordar. */
+  @media (max-width: 399.98px),
+    (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 759.98px) {
+    .hero-ctas .btn {
+      gap: 0.5rem;
+      padding-inline: 1rem;
+      font-size: 0.875rem;
+      letter-spacing: 0.02em;
+      white-space: normal;
+      text-align: center;
+    }
+  }
+  @media (max-width: 359.98px) {
+    .hero-ctas .btn {
+      font-size: 0.8125rem;
+    }
+  }
+
+  /* Móviles en horizontal (poca altura): titular limitado también por svh, ritmo
+     compacto y la casa al lado del texto, como en escritorio. */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .hero-inner {
+      padding-top: calc(var(--nav-h) + 12px);
+      padding-bottom: 40px;
+    }
+    .hero-title {
+      margin-top: 8px;
+      font-size: clamp(1.9rem, 9.5svh, 3.2rem);
+    }
+    .hero-ask {
+      margin-top: 10px;
+    }
+    .hero-copy .hero-lead {
+      margin-top: 12px;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .hero-ctas {
+      margin-top: 14px;
+    }
+    .hero-ctas .btn {
+      min-height: 48px;
+      padding-block: 0.7rem;
+    }
+    .hero-facts {
+      margin-top: 10px;
+    }
+    .hero-brand-tag {
+      display: none;
+    }
+  }
+  /* Menos de 360px de alto (horizontal con la barra del navegador visible): ≈20px menos
+     de aire para que "Cotizar por WhatsApp" siga entrando en la primera pantalla. */
+  @media (orientation: landscape) and (max-height: 359.98px) {
+    .hero-inner {
+      padding-top: calc(var(--nav-h) + 6px);
+    }
+    .hero-ask {
+      margin-top: 6px;
+    }
+    .hero-title {
+      margin-top: 4px;
+    }
+    .hero-copy .hero-lead {
+      margin-top: 8px;
+    }
+    .hero-ctas {
+      margin-top: 12px;
+    }
+  }
+  @media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 1023.98px) {
+    /* El dibujo no pasa de 66svh (cabe en la pantalla con su leyenda): su columna mide
+       eso y todo lo demás es para el texto (≈ +15px de columna a 640×360 frente a 11/9). */
+    .hero-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, min(66svh, 45%));
+      column-gap: 28px;
+    }
+    /* Columna estrecha: dibujo recortado como en móvil, leyenda debajo en vez de
+       rótulos de 12px encima, y la cabecera en flujo (no encima del techo). */
+    .hero-visual .hs {
+      max-width: min(100%, 66svh);
+      margin-inline: auto 0;
+    }
+    .hero-visual .hs-head {
+      position: static;
+      margin-bottom: 6px;
+    }
+    .hero-visual .hs-stage {
+      aspect-ratio: 480 / 540;
+    }
+    .hero-visual .hs-l-labels {
+      display: none;
+    }
+    /* Leyenda en 225–260px: columnas a la medida de su texto (no mitades iguales, donde
+       "01 ENERGÍA" no cabía), muestras y espaciado más cortos. */
+    .hero-visual .hs-legend {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      justify-content: space-between;
+      gap: 6px 10px;
+      margin-top: 10px;
+      letter-spacing: 0.1em;
+    }
+    .hero-visual .hs-legend li {
+      gap: 6px;
+    }
+    .hero-visual .hs-sw {
+      width: 14px;
+    }
+    .hero-visual .hs-sw[data-sys="hogar"] {
+      width: 10px;
+      margin-inline: 2px;
+    }
+  }
+  /* Móviles horizontales estrechos (600–760px): la columna de texto mide 300–340px.
+     CTA apilados a ancho completo (compactos: ver el bloque de teléfonos angostos) y la
+     fila de datos en dos líneas, sin el separador vertical. */
+  @media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 759.98px) {
+    .hero-ctas {
+      flex-direction: column;
+    }
+    .hero-ctas .btn {
+      width: 100%;
+    }
+    .hero-facts {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .hero-facts .hero-cities::before {
+      display: none;
+    }
+  }
+
+  /* Monitores grandes y altos: el bloque crece con la pantalla (con --maxw 1560px en
+     ≥2200) y baja un poco más, sin min-height: sigue asomando la sección siguiente. */
+  @media (min-width: 1920px) and (min-height: 1100px) {
+    .hero-inner {
+      padding-top: calc(var(--nav-h) + clamp(132px, 26svh - 160px, 240px));
+      padding-bottom: clamp(64px, 7svh, 120px);
+    }
+  }
+  @media (min-width: 2200px) {
+    .hero-ask {
+      font-size: 1.375rem;
+    }
+    .hero-copy .hero-lead {
+      font-size: 1.375rem;
+    }
+    .hero-ctas .btn {
+      min-height: 60px;
+      padding-inline: 1.75rem;
+      font-size: 1.0625rem;
+    }
+    .hero-call {
+      font-size: 1.1875rem;
+    }
+  }
+
   /* ---------------- Secuencia de entrada (con JS) ---------------- */
   html.js .hero-ask-text {
     animation: hero-type calc(520ms * var(--k)) steps(18, end) both;
@@ -449,7 +726,7 @@
   html.js .hero-line-3 {
     animation-delay: calc(400ms * var(--k));
   }
-  html.js .hero-power {
+  html.js .hero-solve::after {
     animation: hero-power-on calc(420ms * var(--k)) var(--ease-out) both;
     animation-delay: calc(1080ms * var(--k));
   }
@@ -479,15 +756,37 @@
     }
   }
 
-  /* Lectura de estado */
-  /* Ancho fijo en rem y contenido alineado a la izquierda: al cargar la fuente mono
-     ninguna parte cambia de punto de inicio (sin CLS). */
+  /* Cabecera de instrumento: paso (izquierda) + lectura de estado (derecha).
+     Ambas cajas se anclan a su borde (inicio fijo / ancho fijo en rem): al cargar la
+     fuente mono nada cambia de punto de inicio (sin CLS). */
+  .hs-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 16px;
+    margin-bottom: 8px;
+  }
+  .hs-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    /* 24px = caja de línea del rótulo de marca (inline-flex sobre el strut del cuerpo):
+       así el texto de la cabecera queda en la misma línea que la marca. */
+    min-height: 24px;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .hs-step-i {
+    color: var(--color-violet);
+    font-weight: 600;
+  }
   .hs-readout {
     display: flex;
     align-items: center;
     width: 12.5rem;
-    min-height: 20px;
-    margin: 0 0 8px auto;
+    min-height: 24px;
+    margin: 0 0 0 auto;
     color: var(--color-ink-3);
     white-space: nowrap;
   }
@@ -528,13 +827,28 @@
     box-shadow: 0 0 0 3px rgb(0 192 0 / 0.16);
   }
   @media (min-width: 640px) {
-    /* Caja de ancho fijo (rem): el cambio de fuente mono no la desplaza */
-    .hs-readout {
+    /* Sobre la franja superior libre del escenario (el techo queda al centro) */
+    .hs-head {
       position: absolute;
       top: 0;
+      left: 0;
       right: 0;
       z-index: 3;
       margin: 0;
+      pointer-events: none;
+    }
+  }
+  /* 1024–1200px: el escenario mide 400–485px y la lectura de 12,5rem empezaba en el eje
+     del techo a 1024 ("E" de ESTADO sobre el vértice) y a menos de 30px de él hasta
+     ≈1150. Sin la clave queda en la esquina (≥ 68px del eje); desde 1200 la clave vuelve
+     con ≥ 43px de margen. Ancho fijo en rem (ambos estados caben: el valor es una
+     rejilla que los superpone), así al cargar la fuente mono su inicio no se mueve. */
+  @media (min-width: 1024px) and (max-width: 1199.98px) {
+    .hs-read-k {
+      display: none;
+    }
+    .hs-readout {
+      width: 8.25rem;
     }
   }
 
@@ -687,7 +1001,7 @@
     --c: var(--color-gas);
   }
   .hs-h {
-    --c: var(--color-green);
+    --c: var(--color-violet);
   }
   .hs-sys {
     transition: opacity 0.25s var(--ease-out);
@@ -930,10 +1244,12 @@
   .hs-legend [data-sys="gas"] {
     --c: var(--color-gas);
   }
+  /* 04 HOGAR en violet: el verde es solo acción y estado LISTO (el anillo de encendido
+     lo conserva como nodo del sistema, nada más). */
   .hs-leader[data-sys="hogar"],
   .hs-label[data-sys="hogar"],
   .hs-legend [data-sys="hogar"] {
-    --c: var(--color-green);
+    --c: var(--color-violet);
   }
   .hs-leader path {
     fill: none;
@@ -1076,26 +1392,31 @@
     animation-delay: calc(980ms * var(--k));
   }
 
-  /* ---------------- Bucles (anim-loop: se congelan en lite / fuera de pantalla) ---------------- */
+  /* ---------------- Flujos: pasadas finitas (anim-loop: se congelan en lite / pausa /
+     fuera de pantalla). La primera arranca tras la secuencia de entrada; las siguientes
+     las lanza HomeSystemStage con data-run="off" → (2 fotogramas) → "on". ---------------- */
+  .hs-stage {
+    --run: 2.4s;
+  }
   html.js .hs-flow {
-    animation: hs-flow 0.62s linear infinite;
+    animation: hs-flow var(--run) var(--ease-in-out) both;
     animation-delay: calc(1250ms * var(--k));
   }
   html.js .hs-gas {
-    animation: hs-gas-flow 2.6s linear infinite;
+    animation: hs-gas-flow var(--run) var(--ease-in-out) both;
     animation-delay: calc(1250ms * var(--k));
   }
   html.js .hs-pulse,
   html.js .hs-pulse-glow {
     visibility: visible;
-    animation: hs-pulse-a 3.6s linear infinite;
+    animation: hs-pulse-a var(--run) linear both;
     animation-delay: calc(1250ms * var(--k));
   }
   html.js .hs-pulse-b {
     animation-name: hs-pulse-b;
   }
   html.js .hs-lamp-glow {
-    animation: hs-lamp-a 3.6s linear infinite;
+    animation: hs-lamp-a var(--run) linear both;
     animation-delay: calc(1250ms * var(--k));
   }
   html.js .hs-lamp[data-n="1"] .hs-lamp-glow {
@@ -1107,26 +1428,44 @@
   html.js .hs-lamp[data-n="3"] .hs-lamp-glow {
     animation-name: hs-lamp-d;
   }
+  /* Onda del anillo: una por pasada. Aunque solo anima transform/opacity, en un SVG no va
+     al compositor (pinta en el hilo principal): también descansa entre pasadas. */
   html.js .hs-ring-wave {
-    animation: hs-wave 3s var(--ease-out) infinite;
+    animation: hs-wave var(--run) var(--ease-out);
     animation-delay: calc(1450ms * var(--k));
   }
-  /* Táctil: los nodos se encienden en secuencia (en escritorio los enciende el puntero) */
+  /* Táctil: los nodos se encienden en secuencia, una vez por pasada (en escritorio los
+     enciende el puntero). Medido a 4× CPU: en bucle infinito costaban ~130 ms/s. */
   @media (hover: none), (pointer: coarse) {
     html.js .hs-node {
-      animation: hs-node-seq 5.4s var(--ease-out) infinite;
-      animation-delay: calc(1400ms * var(--k) + var(--i) * 600ms);
+      animation: hs-node-seq 0.8s var(--ease-out);
+      animation-delay: calc(1400ms * var(--k) + var(--i) * 220ms);
     }
     html.js .hs-node .hs-node-core {
-      animation: hs-node-core 5.4s var(--ease-out) infinite;
-      animation-delay: calc(1400ms * var(--k) + var(--i) * 600ms);
+      animation: hs-node-core 0.8s var(--ease-out);
+      animation-delay: calc(1400ms * var(--k) + var(--i) * 220ms);
     }
+    html.js .hs-stage[data-run="on"] .hs-node,
+    html.js .hs-stage[data-run="on"] .hs-node .hs-node-core {
+      animation-delay: calc(150ms + var(--i) * 220ms);
+    }
+  }
+  /* Reinicio de una pasada (van después de las reglas de nombre: misma especificidad) */
+  html.js .hs-stage[data-run="off"] :is(.hs-flow, .hs-gas, .hs-pulse, .hs-pulse-glow, .hs-lamp-glow, .hs-ring-wave, .hs-node, .hs-node-core) {
+    animation: none;
+  }
+  html.js .hs-stage[data-run="on"] :is(.hs-flow, .hs-gas, .hs-pulse, .hs-pulse-glow, .hs-lamp-glow) {
+    animation-delay: 0s;
+  }
+  html.js .hs-stage[data-run="on"] .hs-ring-wave {
+    animation-delay: 0.2s;
   }
 
   /* Pantalla de carga: todo espera congelado en su primer fotograma y arranca cuando la
      cortina empieza a salir (boot-done), para que el titular suba mientras se retira. */
   html.is-booting:not(.boot-done) .hero,
-  html.is-booting:not(.boot-done) .hero * {
+  html.is-booting:not(.boot-done) .hero *,
+  html.is-booting:not(.boot-done) .hero-solve::after {
     animation-play-state: paused !important;
   }
 

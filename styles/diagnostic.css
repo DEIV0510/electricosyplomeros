@@ -54,6 +54,22 @@
     stroke-dashoffset: 0;
   }
 }
+/* Pulso del osciloscopio: recorre la traza y se apaga en el último tramo (pausa de reposo). */
+@keyframes dx-scope-run {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+  78% {
+    stroke-dashoffset: 6;
+    opacity: 1;
+  }
+  86%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
 @keyframes dx-dash {
   to {
     stroke-dashoffset: -52;
@@ -169,12 +185,20 @@
   /* ---------------------------------------------------------------- */
   .dx-section {
     position: relative;
-    padding-block: clamp(72px, 9vw, 120px);
+    padding-block: var(--section-y);
     background: var(--color-paper);
     border-top: 1px solid var(--line);
   }
+  /* Escritorio: arriba más ceñido para que la sección asome justo bajo el hero. */
+  @media (min-width: 1024px) {
+    .dx-section {
+      padding-top: 88px;
+    }
+  }
   .dx-head {
     display: grid;
+    /* minmax(0, …): una palabra larga del H2 nunca ensancha la columna (ni la página). */
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px 48px;
     align-items: end;
     margin-bottom: clamp(28px, 4vw, 52px);
@@ -184,13 +208,18 @@
       grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
     }
   }
+  /* Escala de H2 de sección (DESIGN §2): el H1 del hero sigue siendo el pico. Por debajo de
+     ~375 px manda el ancho: "FUNCIONANDO." cabe entero a 320 px (8.9vw ≈ 28.5 px). */
   .dx-h2 {
     margin-top: 18px;
-    font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+    font-size: min(clamp(2.1rem, 4.2vw, 3.6rem), 8.9vw);
     color: var(--color-ink);
+    /* Espaciado de texto del usuario (WCAG 1.4.12): si "FUNCIONANDO." ya no cabe, parte la
+       palabra en vez de ensanchar la página. Sin esa preferencia cabe entera y nada cambia. */
+    overflow-wrap: break-word;
   }
-  .dx-h2-dot {
-    color: var(--color-gas);
+  .dx-h2-accent {
+    color: var(--color-violet);
   }
   .dx-lead {
     max-width: 30rem;
@@ -239,8 +268,14 @@
   .dx-direct-link:hover {
     color: var(--color-ink);
   }
+  /* Con la consola abierta el enlace directo competiría con "Hablar con un asesor" y
+     enviaría el mensaje genérico: solo se ofrece en el paso 1 (y siempre sin JS). */
+  .dx-section:has(.dx-console) .dx-direct {
+    display: none;
+  }
 
-  /* Colores por sistema (claro / sobre night) */
+  /* Colores por sistema (claro / sobre night). SOPORTE (hogar) nunca usa verde:
+     el verde es solo para acciones y el estado listo (DESIGN §2). */
   .dx-root [data-sys="electricidad"] {
     --dx-c: var(--color-electric);
     --dx-glow: var(--color-electric-glow);
@@ -255,7 +290,7 @@
   }
   .dx-root [data-sys="hogar"] {
     --dx-c: var(--color-violet);
-    --dx-glow: var(--color-green);
+    --dx-glow: var(--color-mist);
   }
   .dx-root [data-dx-heading]:focus {
     outline: none;
@@ -409,6 +444,15 @@
     font-size: clamp(1.5rem, 2.3vw, 2rem);
     line-height: 1;
   }
+  /* Palabras grandes del flujo: con espaciado de texto del usuario (WCAG 1.4.12) parten la
+     palabra en su caja en vez de salirse o taparse con el ícono/flecha de al lado. Solo actúa
+     cuando la palabra no cabe entera, así que el render normal no cambia. */
+  .dx-h3,
+  .dx-svc-name,
+  .dx-opt-l,
+  .dx-city-name {
+    overflow-wrap: break-word;
+  }
   @media (min-width: 768px) {
     .dx-bar {
       grid-template-columns: auto minmax(0, 1fr) auto;
@@ -447,7 +491,7 @@
 
   .dx-svc {
     --dx-c: var(--color-violet);
-    --dx-glow: var(--color-green);
+    --dx-glow: var(--color-mist);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -529,17 +573,19 @@
       fill 0.3s var(--ease-out),
       stroke 0.3s var(--ease-out);
   }
+  /* Flujos (stroke-dashoffset): solo con el puntero encima o con foco, y un número finito
+     de vueltas; cada nuevo hover/foco los vuelve a arrancar (DESIGN §2 Movimiento). */
   .dx-pat-flow {
+    --dx-flow-d: 2.4s;
     stroke: var(--dx-glow);
     stroke-width: 2;
     stroke-dasharray: 12 88;
     opacity: 0;
     transition: opacity 0.3s var(--ease-out) 0.1s;
-    animation: dx-flow 2.4s linear infinite paused;
   }
   .dx-pat-flow-slow {
+    --dx-flow-d: 4s;
     stroke-dasharray: 16 84;
-    animation-duration: 4s;
   }
   .dx-pat-dash {
     stroke: var(--dx-pc);
@@ -549,7 +595,6 @@
     transition:
       opacity 0.3s var(--ease-out),
       stroke 0.3s var(--ease-out);
-    animation: dx-dash 2.6s linear infinite paused;
   }
 
   .dx-svc-meta {
@@ -627,6 +672,18 @@
   }
   .dx-svc[aria-pressed="true"] .dx-svc-cue {
     color: var(--color-green-ink);
+  }
+  /* 320–359 px: ícono y flecha un poco más estrechos para que "ELECTRICIDAD" quepa entera en
+     su columna (antes invadía el hueco de la flecha). */
+  @media (max-width: 359.98px) {
+    .dx-svc {
+      grid-template-columns: 44px minmax(0, 1fr) 20px;
+      column-gap: 12px;
+    }
+    .dx-svc-icon {
+      width: 44px;
+      height: 44px;
+    }
   }
   @media (min-width: 768px) {
     .dx-svc {
@@ -709,9 +766,13 @@
   .dx-svc:focus-visible .dx-pat-flow {
     opacity: 1;
   }
-  .dx-root[data-fine="true"] .dx-svc:hover :is(.dx-pat-flow, .dx-pat-dash),
-  .dx-svc:focus-visible :is(.dx-pat-flow, .dx-pat-dash) {
-    animation-play-state: running;
+  .dx-root[data-fine="true"] .dx-svc:hover .dx-pat-flow,
+  .dx-svc:focus-visible .dx-pat-flow {
+    animation: dx-flow var(--dx-flow-d) linear 3 both;
+  }
+  .dx-root[data-fine="true"] .dx-svc:hover .dx-pat-dash,
+  .dx-svc:focus-visible .dx-pat-dash {
+    animation: dx-dash 2.6s linear 3;
   }
   .dx-root[data-fine="true"] .dx-svc:hover .dx-svc-idx,
   .dx-svc:focus-visible .dx-svc-idx {
@@ -886,6 +947,36 @@
   .dx-console .dx-seg[data-current="true"] {
     background: var(--color-mist-2);
   }
+  /* Barra fija (< 1024): lo que recibe el foco con Tab nunca queda escondido debajo de ella
+     (WCAG 2.4.11). El navbar ya lo reserva el scroll-padding de <html>; esto suma la barra. */
+  @media (max-width: 1023.98px) {
+    .dx-cbody :is(a, button, input, textarea) {
+      scroll-margin-top: 90px;
+    }
+  }
+  /* Pantallas bajas (teléfono horizontal, zoom 200 %): navbar + barra fija se comerían un
+     tercio de la ventana. Ahí la barra deja de ser fija. */
+  @media (max-width: 1023.98px) and (max-height: 560px) {
+    .dx-cbar {
+      position: relative;
+      top: auto;
+    }
+    .dx-cbody :is(a, button, input, textarea) {
+      scroll-margin-top: 0;
+    }
+  }
+  /* 320–359 px: "Reiniciar" queda solo con el ícono (conserva su nombre accesible y los
+     44 px) para que "PASO n/5" / "RESULTADO" no choque con los botones. */
+  @media (max-width: 359.98px) {
+    .dx-cbar-restart span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
   @media (min-width: 1024px) {
     .dx-cbar {
       position: relative;
@@ -1028,13 +1119,23 @@
     stroke-linejoin: round;
     transition: stroke 0.3s var(--ease-out);
   }
+  /* Pulso del osciloscopio: stroke-dashoffset, así que corre 3 vueltas y se detiene. Vuelve
+     a correr en cada paso (key en Scope) y al regresar a pantalla (data-paused pasa a false). */
   .dx-scope-pulse {
     stroke: var(--color-mist);
     stroke-width: 2.25;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-dasharray: 5 95;
-    animation: dx-flow 2.4s linear infinite;
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  .dx-root[data-paused="false"] .dx-scope-pulse {
+    animation: dx-scope-run 2.4s linear 3;
+  }
+  /* SOPORTE sobre night: traza en mist-2 para que el pulso (mist) se distinga. */
+  .dx-console[data-sys="hogar"] .dx-scope[data-done="false"] .dx-scope-trace {
+    stroke: var(--color-mist-2);
   }
   .dx-scope-sweep {
     fill: var(--dx-glow);
@@ -1168,13 +1269,15 @@
     color: var(--color-mist-2);
   }
 
-  /* Opciones: una columna en teléfonos (filas anchas para el pulgar), 2 y 3 después */
+  /* Opciones: una columna en teléfonos (filas anchas para el pulgar), 2 y 3 después.
+     Cortes elegidos para que la palabra más larga ("Mantenimiento", "Apartamento") quepa
+     entera antes del círculo de selección. */
   .dx-opts {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
-  @media (min-width: 480px) {
+  @media (min-width: 520px) {
     .dx-opts {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1191,6 +1294,16 @@
     }
     .dx-opts--odd > :last-child {
       grid-column: auto;
+    }
+  }
+  /* 1024–1199: la columna Lectura le quita ancho al área de pregunta; con 3 columnas
+     "Mantenimiento" quedaba encima del círculo. */
+  @media (min-width: 1024px) and (max-width: 1199.98px) {
+    .dx-opts--3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dx-opts--3.dx-opts--odd > :last-child {
+      grid-column: 1 / -1;
     }
   }
   .dx-opt {
@@ -1287,10 +1400,12 @@
   .dx-opt--city {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
+    /* El círculo solo ocupa la fila de arriba: el nombre de la ciudad usa todo el ancho
+       (con espaciado de texto amplio "MONTERÍA" cabe sin partirse). */
     grid-template-areas:
       "top check"
-      "name check"
-      "coords check";
+      "name name"
+      "coords coords";
     align-items: center;
     row-gap: 8px;
     min-height: 112px;
@@ -1366,12 +1481,13 @@
     line-height: 1.5;
     color: var(--color-mist);
     background: var(--color-night-2);
-    border: 1px solid var(--dx-ln2);
+    /* Borde ≥ 3:1 en reposo (WCAG 1.4.11): es lo único que delimita el campo. */
+    border: 1px solid var(--color-mist-3);
     border-radius: 2px;
     transition: border-color 0.18s var(--ease-out);
   }
   .dx-root[data-fine="true"] .dx-input:hover {
-    border-color: var(--color-mist-3);
+    border-color: var(--color-mist-2);
   }
   .dx-input:focus {
     outline: 2px solid var(--color-electric-glow);
@@ -1527,7 +1643,28 @@
     font-weight: 600;
     line-height: 1.35;
     color: var(--color-mist);
-    overflow-wrap: anywhere;
+    /* Solo parte una palabra si de verdad no cabe (nada de "Manteni / miento"). */
+    overflow-wrap: break-word;
+  }
+  /* Teléfonos: rótulo y "Editar" en la primera línea, el valor a todo el ancho debajo. */
+  @media (max-width: 479.98px) {
+    .dx-sheet-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        "k act"
+        "v v";
+      gap: 0 12px;
+      padding: 2px 0 12px;
+    }
+    .dx-sheet-k {
+      grid-area: k;
+    }
+    .dx-sheet-v {
+      grid-area: v;
+    }
+    .dx-sheet-act {
+      grid-area: act;
+    }
   }
   .dx-sheet-row[data-long="true"] .dx-sheet-v {
     display: -webkit-box;
@@ -1564,15 +1701,26 @@
   .dx-cta-zone {
     margin-top: 24px;
   }
-  .dx-cta {
+  /* Doble clase: .btn-lg (globals) se declara después en la misma capa y ganaría. */
+  .dx-cta-zone .dx-cta {
     width: 100%;
     padding-inline: 1rem;
+    white-space: normal;
+    text-align: center;
   }
   .dx-cta svg {
     flex: none;
   }
+  @media (max-width: 399.98px) {
+    .dx-cta-zone .dx-cta {
+      gap: 0.6rem;
+      padding-inline: 0.75rem;
+      font-size: 0.9375rem;
+      letter-spacing: 0.02em;
+    }
+  }
   @media (min-width: 640px) {
-    .dx-cta {
+    .dx-cta-zone .dx-cta {
       width: auto;
       min-width: 22rem;
       padding-inline: 1.8rem;
@@ -1661,7 +1809,7 @@
     gap: 10px;
     margin-top: 6px;
   }
-  .dx-copy {
+  .dx-success-actions .dx-copy {
     padding-inline: 1rem;
   }
   .dx-copy svg {
@@ -1732,6 +1880,81 @@
     /* En escritorio el mensaje ya se ve (y se puede seleccionar) en la columna Lectura. */
     .dx-msg-select {
       display: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Teléfono en horizontal: la primera opción debe verse al llegar   */
+  /*  desde "Encontrar una solución" (titulares limitados por svh).    */
+  /* ---------------------------------------------------------------- */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .dx-section {
+      padding-top: 24px;
+    }
+    /* H2 y texto lado a lado: la cabecera ocupa la mitad del alto */
+    .dx-head {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 10px 32px;
+      margin-bottom: 16px;
+    }
+    .dx-lead {
+      font-size: 1rem;
+    }
+    .dx-h2 {
+      margin-top: 10px;
+      font-size: min(clamp(1.75rem, 8svh, 2.4rem), 8.9vw);
+    }
+    .dx-flow {
+      display: none;
+    }
+    /* Opciones de servicio en filas compactas (2 columnas), como en el teléfono vertical */
+    .dx-bar {
+      padding-block: 10px;
+    }
+    .dx-svc {
+      display: grid;
+      min-height: 84px;
+      padding: 12px 16px;
+    }
+    .dx-pattern {
+      display: none;
+    }
+    .dx-svc-icon {
+      width: 48px;
+      height: 48px;
+      margin-top: 0;
+    }
+    .dx-svc-text {
+      margin-top: 0;
+      padding-top: 0;
+      gap: 2px;
+    }
+    .dx-svc-name {
+      min-height: 0;
+      font-size: 1.0625rem;
+    }
+    .dx-svc-q {
+      min-height: 0;
+      font-size: 0.9375rem;
+    }
+    .dx-svc-cue {
+      justify-content: flex-end;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+    .dx-svc-cue-t {
+      display: none;
+    }
+    .dx-h3--q,
+    .dx-h3--result {
+      font-size: min(clamp(1.5rem, 7svh, 2rem), 7vw);
+    }
+    .dx-city-name {
+      font-size: min(clamp(1.5rem, 7svh, 2rem), 7vw);
+    }
+    .dx-opt--city {
+      min-height: 0;
     }
   }
 

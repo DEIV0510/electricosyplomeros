@@ -57,6 +57,8 @@ El logo tiene tres piezas que guían todo el lenguaje visual:
 | `electric-glow` / `water-glow` / `gas-glow` | #9d8cff / #4cc3f5 / #ff9a57 | trazos de sistemas sobre night |
 
 Reglas de color:
+- **El verde es exclusivo de acciones (CTA/WhatsApp) y del estado LISTO/RESUELTO** (anillo de encendido, SOLUCIONAMOS., HABLEMOS.). No es el color de ningún sistema: SOPORTE usa violet sobre claro y mist sobre night.
+- **Acentos de titular:** sobre paper, el acento es violet (palabra clave o segunda línea). Sobre night, verde solo para la palabra "resuelta". Nada de naranja/gas en titulares.
 - El verde es para acciones y estado "listo". No pintar secciones enteras de verde. Texto blanco sobre verde está PROHIBIDO (contraste 2.5:1): sobre verde siempre `ink`.
 - Verde como texto sobre paper: solo `green-ink`. Sobre night, `green` sí sirve como texto (7.9:1).
 - Gas es un acento cálido muy sutil (líneas de 1–1.5px, opacidad ~0.8). Nunca fondos naranjas.
@@ -70,14 +72,15 @@ Sistemas → color → ícono:
 | electricidad | 01 ENERGÍA | Electricidad | electric | electric-glow | IconBolt |
 | plomeria | 02 AGUA | Plomería | water | water-glow | IconDrop |
 | gas | 03 GAS | Gas | gas | gas-glow | IconFlame |
-| hogar | 04 SOPORTE | Asistencia para el hogar | violet | green | IconHome |
+| hogar | 04 SOPORTE | Asistencia para el hogar | violet | mist (blanco) — NUNCA verde | IconHome |
 
 ### Tipografía
 
 - **Archivo** variable (pesos 100–900, ancho 62–125%) para todo. Titulares con `.t-display` (800, `font-stretch:118%`, mayúsculas, interlineado 0.94) → eco del wordmark ancho del logo sin caer en lo futurista. Subtítulos con `.t-title`.
 - **JetBrains Mono** solo para rótulos técnicos pequeños: `.t-label` (12px, mayúsculas, tracking 0.14em). Nunca para párrafos.
 - Texto base 16px (17–20px en leads con `.t-lead`). Mínimo absoluto 12px y solo en rótulos mono.
-- Escala de titulares sugerida: hero `clamp(2.6rem, 7.4vw, 6.6rem)`; H2 de sección `clamp(2.1rem, 5.2vw, 4.4rem)`; H3 `clamp(1.35rem, 2.2vw, 1.75rem)`.
+- Escala de titulares: el **H1 del hero es el pico de la página** (≈ 76–80px a 1440, más en ≥1920). H2 de sección `clamp(2.1rem, 4.2vw, 3.6rem)` (≈ 58px a 1440); el H2 de contacto como máximo 4.5rem; nombres de ciudad como máximo ≈ 4.25rem. H3 `clamp(1.35rem, 2.2vw, 1.75rem)`. En pantallas < 360px los titulares se limitan por `vw` para que nunca desborden (320px debe verse sin scroll lateral). En móviles horizontales (`(orientation: landscape) and (max-height: 520px)`) los titulares se limitan también por `svh`.
+- Espaciado vertical de secciones: `var(--section-y)` (definido en globals).
 - Rótulos mono cortos con `whitespace-nowrap` para que no partan línea con la fuente de respaldo (evita CLS).
 
 ### Forma
@@ -89,6 +92,10 @@ Sistemas → color → ícono:
 - Sombras: casi nunca. Profundidad por superposición de capas, contraste paper/night y líneas.
 
 ### Movimiento
+
+- **Bucles con costo de hilo principal** (`stroke-dashoffset`): nunca `infinite`. Corren un número finito de ciclos y se reactivan al volver a entrar en pantalla o al interactuar (puntero), con pausas de reposo. Bucles baratos (opacity/transform) pueden ser infinitos. Todos llevan `.anim-loop`.
+- **Pausa global:** `html.motion-paused` (botón "Pausar animaciones" en el footer, `components/ui/MotionToggle.tsx`). CSS: ya pausa `.anim-loop`. JS (rotaciones, rAF, reinicios periódicos): consultar `useMotionPaused()` de `lib/hooks.ts` y no arrancar nada si es true. Igual con `useIsLite()` y movimiento reducido.
+- **Doble clic / doble toque:** ninguna pantalla nueva debe aceptar el segundo clic de un doble clic (ignorar clics < 400 ms después de cambiar de vista).
 
 - Easing de entrada `var(--ease-out)`; microinteracciones 150–300 ms; transiciones de estado ≤ 450 ms; salidas más cortas que entradas.
 - Solo `transform` y `opacity` para animar elementos. Excepción permitida: `stroke-dashoffset` en trazos SVG pequeños (flujo de corriente/agua/gas). Toda animación en bucle debe: (a) llevar la clase `anim-loop` (se congela en modo `lite`) y (b) pausarse fuera de pantalla poniendo `data-paused="true"` en su contenedor (usa `useInView` de `lib/hooks.ts`).
@@ -208,7 +215,7 @@ Hover/foco: el fondo pasa de `paper` a `night` con un barrido (transform de un p
 - **Estados**: `idle` → al hacer clic válido: `sending` (texto del botón "Abriendo WhatsApp…" + punto pulsante, sin bloquear la navegación del enlace) → `sent` tras ~700 ms: mensaje de éxito "Listo. Te abrimos WhatsApp con tu mensaje." + "¿No se abrió? Abrir WhatsApp de nuevo" (enlace) + "Copiar mensaje" (portapapeles, con estado copiado / error) + "Empezar otro diagnóstico". `error`: si falla la validación (ver arriba) o si el portapapeles falla ("No pudimos copiar. Mantén presionado el texto para copiarlo."). Región `aria-live="polite"` para anunciar los cambios de estado.
 - El estado vive en el componente (sin `localStorage`). Al reiniciar, vuelve al paso 1 y hace scroll suave a la sección.
 - Móvil es prioridad: opciones en una columna o 2 columnas con alto ≥ 56px, texto ≥ 16px (evita zoom de iOS), botón Atrás siempre visible, el teclado no tapa el CTA (el botón flotante de WhatsApp se esconde cuando un campo tiene foco: emite `document.documentElement.dataset.inputFocus = '1'`/borra al salir, o simplemente que WhatsAppButton escuche `focusin`/`focusout` de inputs y textareas).
-- Con JS deshabilitado: el paso 1 debe mostrar al menos un enlace funcional a WhatsApp (p. ej. el texto "¿Prefieres escribir directo? Habla por WhatsApp").
+- Con JS deshabilitado: el paso 1 debe mostrar al menos un enlace funcional a WhatsApp (p. ej. el texto "¿Prefieres escribir directo? Hablar por WhatsApp").
 
 ### 7.6 Systems — "UN HOGAR. CUATRO SISTEMAS."
 H2: `UN HOGAR.` / `CUATRO SISTEMAS.` + texto corto ("Electricidad, agua, gas y soporte. Cuando uno falla, toda la casa lo siente."). Esta sección también es la sección informativa de servicios (no repetirla en otra parte).

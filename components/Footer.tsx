@@ -2,7 +2,8 @@ import type { CSSProperties } from 'react';
 import Logo from '@/components/ui/Logo';
 import { CallLink } from '@/components/ui/Cta';
 import { IconArrowDown, IconFacebook, IconWhatsApp } from '@/components/ui/Icons';
-import { CITIES, CONTACT, SYSTEMS } from '@/lib/content';
+import MotionToggle from '@/components/ui/MotionToggle';
+import { BRAND, CITIES, CONTACT, SYSTEMS } from '@/lib/content';
 import { WHATSAPP_DEFAULT_URL } from '@/lib/whatsapp';
 
 /**
@@ -24,9 +25,8 @@ export default function Footer() {
       <div className="container-x">
         <div className="ft-main">
           <div className="ft-brand">
-            <a href="#inicio" className="ft-logo-link">
+            <a href="#inicio" className="ft-logo-link" aria-label={`${BRAND.name}, ${BRAND.tagline}: ir al inicio`}>
               <Logo className="ft-logo" sizes="174px" />
-              <span className="sr-only">, ir al inicio</span>
             </a>
             <p className="t-label ft-brand-label">
               <span className="ft-brand-name">
@@ -86,7 +86,7 @@ export default function Footer() {
                 <li>
                   <a href={WHATSAPP_DEFAULT_URL} target="_blank" rel="noopener noreferrer" className="ft-link ft-link-icon">
                     <IconWhatsApp size={18} />
-                    <span>Escríbenos por WhatsApp</span>
+                    <span>Hablar por WhatsApp</span>
                     <span className="sr-only"> (se abre WhatsApp)</span>
                   </a>
                 </li>
@@ -104,10 +104,13 @@ export default function Footer() {
 
         <div className="ft-bottom">
           <p className="ft-copy">© 2026 Eléctricos y Plomeros · Soluciones Eficientes</p>
-          <a href="#inicio" className="ft-top">
-            Volver arriba
-            <IconArrowDown size={18} className="ft-top-icon" />
-          </a>
+          <div className="ft-bottom-actions">
+            <MotionToggle className="ft-motion" />
+            <a href="#inicio" className="ft-top">
+              Volver arriba
+              <IconArrowDown size={18} className="ft-top-icon" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

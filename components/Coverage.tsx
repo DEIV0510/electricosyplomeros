@@ -19,7 +19,8 @@ export default function Coverage() {
             <SectionTag>Cobertura</SectionTag>
             <h2 id="cov-title" className="t-display cov-title">
               <span className="block">Estamos donde</span>
-              <span className="block">nos necesitas.</span>
+              {/* Acento de titular sobre paper: violet (DESIGN §2) */}
+              <span className="block text-violet">nos necesitas.</span>
             </h2>
           </div>
           <p className="t-lead cov-lead">Atendemos en Medellín y Montería.</p>

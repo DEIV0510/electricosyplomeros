@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import Logo from '@/components/ui/Logo';
 import { CallLink, WhatsAppLink } from '@/components/ui/Cta';
 import { IconArrowRight } from '@/components/ui/Icons';
-import { CITIES, NAV } from '@/lib/content';
+import { BRAND, CITIES, NAV } from '@/lib/content';
 import { useScrollSnapshot } from '@/components/nav/scroll';
 
 /**
@@ -53,11 +53,20 @@ export default function Navbar() {
   const headerRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const focusToggleOnClose = useRef(false);
+  // Doble clic / doble toque (DESIGN §2): el segundo clic, < 400 ms después de abrir o
+  // cerrar el menú, se ignora (si no, el menú se abre y se cierra en el acto).
+  const changedAt = useRef(-Infinity);
+  const tooSoon = () => performance.now() - changedAt.current < 400;
 
   const closeMenu = useCallback((focusToggle: boolean) => {
     focusToggleOnClose.current = focusToggle;
+    changedAt.current = performance.now();
     setOpen(false);
   }, []);
+  const openMenu = () => {
+    changedAt.current = performance.now();
+    setOpen(true);
+  };
 
   useEffect(() => {
     if (!open) {
@@ -72,6 +81,19 @@ export default function Navbar() {
     const prevOverflow = html.style.overflow;
     html.style.overflow = 'hidden';
     html.setAttribute('data-ep-menu', 'open');
+
+    // Modal de verdad: todo lo que queda detrás del menú (contenido, footer, botón flotante,
+    // riel, enlace de salto…) sale del árbol de accesibilidad y del foco con `inert`, para
+    // que el gesto de deslizar de VoiceOver/TalkBack no se escape del menú. El header queda
+    // intacto (logo, Cotizar y el botón de cerrar forman parte del ciclo de foco).
+    const header = headerRef.current;
+    const madeInert: HTMLElement[] = [];
+    for (const el of Array.from(document.body.children)) {
+      if (!(el instanceof HTMLElement) || el === header || el.contains(header)) continue;
+      if (/^(SCRIPT|STYLE|TEMPLATE|LINK|NOSCRIPT)$/.test(el.tagName) || el.inert) continue;
+      el.inert = true;
+      madeInert.push(el);
+    }
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -114,6 +136,7 @@ export default function Navbar() {
       desk.removeEventListener('change', onDesk);
       html.style.overflow = prevOverflow;
       html.removeAttribute('data-ep-menu');
+      for (const el of madeInert) el.inert = false;
     };
   }, [open, closeMenu]);
 
@@ -129,9 +152,13 @@ export default function Navbar() {
       <div className="nav-bg" aria-hidden="true" />
 
       <div className="container-x nav-bar">
-        <a href="#inicio" className="nav-brand" onClick={() => open && closeMenu(false)}>
-          <Logo priority className="nav-logo" sizes="(min-width: 1024px) 125px, 96px" />
-          <span className="sr-only">, ir al inicio</span>
+        <a
+          href="#inicio"
+          className="nav-brand"
+          aria-label={`${BRAND.name}, ${BRAND.tagline}: ir al inicio`}
+          onClick={() => open && closeMenu(false)}
+        >
+          <Logo priority className="nav-logo" sizes="(min-width: 1024px) 145px, 106px" />
         </a>
 
         <nav aria-label="Principal" className="nav-desk">
@@ -160,7 +187,11 @@ export default function Navbar() {
             aria-expanded={open}
             aria-controls="nav-menu"
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-            onClick={() => (open ? closeMenu(true) : setOpen(true))}
+            onClick={() => {
+              if (tooSoon()) return;
+              if (open) closeMenu(true);
+              else openMenu();
+            }}
           >
             <span className="nav-toggle-lines" aria-hidden="true">
               <span />
@@ -171,7 +202,18 @@ export default function Navbar() {
       </div>
 
       {/* Menú móvil / tablet: dentro del header (mismo contexto de apilamiento). */}
-      <div id="nav-menu" className="nav-menu bg-grid" inert={!open}>
+      <div
+        id="nav-menu"
+        className="nav-menu bg-grid"
+        inert={!open}
+        onClickCapture={(e) => {
+          // Recién abierto: un segundo toque accidental no debe seguir un enlace.
+          if (tooSoon()) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
         <div className="nav-menu-scroll">
           <div className="container-x nav-menu-inner">
             <p className="t-label nav-menu-kicker">

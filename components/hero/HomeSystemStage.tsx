@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
-import { useInView } from '@/lib/hooks';
+import { useInView, useIsLite, useMotionPaused, usePrefersReducedMotion } from '@/lib/hooks';
 import { VB_H, VB_W } from './drawing';
 
 const noopSubscribe = () => () => {};
@@ -16,18 +16,110 @@ const useHydrated = () =>
 const LIT_RADIUS = 90; // px
 const EPS = 0.002;
 const Y_DAMP = 0.3;
+/** Reposo entre pasadas de los flujos en táctiles (la pasada dura --run ≈ 2,4 s en CSS). */
+const REST_MS = 5000;
 
 /**
  * Escenario interactivo del HomeSystem.
  * - Pausa todo lo animado cuando sale de pantalla (data-paused).
- * - Solo con puntero fino (y sin `rm` / `lite`): parallax por capas con lerp en un rAF
- *   que se detiene al converger, halo que sigue al cursor, nodos que se encienden cerca
- *   del puntero y resaltado del sistema bajo el cursor. Nada de esto corre en táctiles.
+ * - Flujos (stroke-dashoffset: pulso eléctrico, agua, gas y luminarias): nunca infinitos.
+ *   Una pasada tras la secuencia de entrada; luego se repite al volver a entrar en
+ *   pantalla, al entrar el puntero (fino) y, en táctiles, cada REST_MS de reposo mientras
+ *   se vea. Nunca con movimiento reducido, `lite` ni animaciones pausadas (footer).
+ * - Solo con puntero fino (y sin `rm` / `lite` / pausa): parallax por capas con lerp en
+ *   un rAF que se detiene al converger, halo que sigue al cursor, nodos que se encienden
+ *   cerca del puntero y resaltado del sistema bajo el cursor. Nada de esto corre en táctiles.
  */
 export default function HomeSystemStage({ label, children }: { label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { rootMargin: '80px 0px' });
   const hydrated = useHydrated();
+  const motionPaused = useMotionPaused();
+  const lite = useIsLite();
+  const reduced = usePrefersReducedMotion();
+
+  /** Estado vivo compartido por los efectos (sin re-render). */
+  const live = useRef({ inView: false, allowed: false });
+  const restartRef = useRef<() => void>(() => {});
+  const syncPointerRef = useRef<() => void>(() => {});
+
+  // Pasadas finitas de los flujos.
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const mqFine = window.matchMedia('(hover: hover) and (pointer: fine)');
+    // Marcador: el pulso principal (su animación dura exactamente una pasada).
+    const marker = root.querySelector('.hs-pulse:not(.hs-pulse-b)');
+    // La primera pasada la lanza el CSS al terminar la secuencia de entrada. En un equipo
+    // lento puede haber terminado antes de hidratar (sin oír su animationend): se mira
+    // su estado real. En pausa (fuera de pantalla, carga, lite, pausa global) sigue viva.
+    let running =
+      marker?.getAnimations().some((a) => a.playState === 'running' || a.playState === 'paused') ?? false;
+    let restTimer = 0;
+    let raf = 0;
+    let pointerInside = false;
+
+    const start = () => {
+      if (running || !live.current.inView || !live.current.allowed) return;
+      running = true;
+      // Quitar la animación un fotograma y volver a ponerla la reinicia desde cero
+      // (la pasada anterior terminó en un fotograma idéntico al de reposo: sin salto).
+      root.dataset.run = 'off';
+      raf = requestAnimationFrame(() => {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          root.dataset.run = 'on';
+        });
+      });
+    };
+
+    const onEnd = (e: AnimationEvent) => {
+      if (e.target !== marker) return;
+      running = false;
+      // Táctil (sin puntero que la despierte) o puntero aún encima: otra pasada tras
+      // un reposo. Si no, queda quieta hasta volver a entrar en pantalla o el puntero.
+      if (!mqFine.matches || pointerInside) {
+        window.clearTimeout(restTimer);
+        restTimer = window.setTimeout(start, REST_MS);
+      }
+    };
+
+    const onEnter = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      pointerInside = true;
+      start();
+    };
+    const onLeave = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      pointerInside = false;
+      if (mqFine.matches) window.clearTimeout(restTimer);
+    };
+
+    restartRef.current = () => {
+      window.clearTimeout(restTimer);
+      start();
+    };
+    root.addEventListener('animationend', onEnd);
+    root.addEventListener('pointerenter', onEnter);
+    root.addEventListener('pointerleave', onLeave);
+    return () => {
+      root.removeEventListener('animationend', onEnd);
+      root.removeEventListener('pointerenter', onEnter);
+      root.removeEventListener('pointerleave', onLeave);
+      window.clearTimeout(restTimer);
+      if (raf) cancelAnimationFrame(raf);
+      restartRef.current = () => {};
+    };
+  }, []);
+
+  // Al volver a entrar en pantalla (o al reanudar el movimiento) se repite la pasada.
+  useEffect(() => {
+    const allowed = !motionPaused && !lite && !reduced && !document.documentElement.classList.contains('rm');
+    live.current.inView = inView;
+    live.current.allowed = allowed;
+    syncPointerRef.current();
+    if (inView && allowed) restartRef.current();
+  }, [inView, motionPaused, lite, reduced]);
 
   useEffect(() => {
     const root = ref.current;
@@ -208,18 +300,24 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
 
     const sync = () => {
       const allowed =
-        mqFine.matches && !mqReduce.matches && !html.classList.contains('rm') && !html.classList.contains('lite');
+        mqFine.matches &&
+        !mqReduce.matches &&
+        !html.classList.contains('rm') &&
+        !html.classList.contains('lite') &&
+        !html.classList.contains('motion-paused');
       if (allowed) enable();
       else disable();
     };
 
     sync();
     setRaf(false);
+    syncPointerRef.current = sync;
     mqFine.addEventListener('change', sync);
     mqReduce.addEventListener('change', sync);
     return () => {
       mqFine.removeEventListener('change', sync);
       mqReduce.removeEventListener('change', sync);
+      syncPointerRef.current = () => {};
       disable();
     };
   }, []);

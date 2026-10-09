@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
 import { SYSTEMS } from '@/lib/content';
+import { useInView } from '@/lib/hooks';
 import {
   buildShapes,
   easeInOutCubic,
@@ -24,17 +25,31 @@ const MORPH_MS = 900;
 /** Parte del tiempo que la transformación tarda en recorrer la línea de izquierda a derecha. */
 const STAGGER = 0.32;
 
-type Engine = { go: (i: number) => void; destroy: () => void };
+type Engine = {
+  go: (i: number) => void;
+  /** Vuelve a correr los flujos (ciclos finitos) si ya terminaron. */
+  replay: () => void;
+  /** Termina de golpe una transformación en curso (el escenario salió de pantalla). */
+  rest: () => void;
+  destroy: () => void;
+};
 
 /**
  * Motor imperativo de la línea: mide el escenario, calcula las cuatro formas en píxeles
  * reales y, al cambiar de sistema, interpola punto a punto en requestAnimationFrame
- * solo mientras dura la transformación.
+ * solo mientras dura la transformación y solo si el escenario se ve (`visible`); fuera
+ * de pantalla, con movimiento reducido, `lite` o animaciones pausadas salta a la forma final.
+ *
+ * Los flujos (stroke-dashoffset) corren un número finito de ciclos (CSS). Se reactivan:
+ *  - al terminar cada transformación (la animación se quita mientras dura y vuelve después),
+ *  - al volver a entrar en pantalla y al entrar el puntero en el panel (`replay`, que alterna
+ *    `data-run` entre dos nombres de @keyframes idénticos para reiniciarla sin forzar layout).
  */
-function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number): Engine {
+function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number, visible: () => boolean): Engine {
   const lines = Array.from(svg.querySelectorAll<SVGPathElement>('[data-line]'));
   const parts = Array.from(svg.querySelectorAll<SVGPathElement>('[data-part]'));
   const spark = svg.querySelector<SVGGElement>('[data-spark]');
+  const board = wrap.closest<HTMLElement>('.sys-board') ?? wrap;
   const desktop = window.matchMedia('(min-width: 1024px)');
   const rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const N = SHAPE_POINTS;
@@ -46,6 +61,8 @@ function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number): Eng
   const from = new Float32Array(N * 2);
   let raf = 0;
   let t0 = 0;
+  /** El flujo activo terminó sus ciclos (o nunca arrancó): se puede reactivar. */
+  let idle = false;
 
   const write = () => {
     const d = toPath(cur);
@@ -55,7 +72,11 @@ function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number): Eng
     for (const p of parts) p.setAttribute('d', shapes.parts[p.dataset.part as PartKey] ?? '');
     spark?.setAttribute('transform', `translate(${shapes.spark[0]} ${shapes.spark[1]})`);
   };
-  const reduced = () => rmQuery.matches || document.documentElement.classList.contains('rm');
+  /** Sin rAF: movimiento reducido, equipo limitado o animaciones pausadas por el visitante. */
+  const still = () => {
+    const cl = document.documentElement.classList;
+    return rmQuery.matches || cl.contains('rm') || cl.contains('lite') || cl.contains('motion-paused');
+  };
 
   const frame = (now: number) => {
     const t = Math.min(1, Math.max(0, (now - t0) / MORPH_MS));
@@ -93,20 +114,42 @@ function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number): Eng
     }
   };
 
+  const replay = () => {
+    if (!idle || raf) return;
+    idle = false;
+    wrap.dataset.run = wrap.dataset.run === 'b' ? 'a' : 'b';
+  };
+  const onEnd = (e: AnimationEvent) => {
+    if ((e.target as Element).classList?.contains('sys-flow')) idle = true;
+  };
+  const onEnter = () => replay();
+
   const ro = new ResizeObserver(measure);
   ro.observe(svg);
   desktop.addEventListener('change', measure);
+  svg.addEventListener('animationend', onEnd);
+  board.addEventListener('pointerenter', onEnter);
+
+  /** Forma final sin rAF. */
+  const snap = () => {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    cur.set(shapes.pts[target]);
+    write();
+    wrap.removeAttribute('data-morphing');
+  };
 
   return {
     go(i) {
       if (i === target) return;
       target = i;
-      if (reduced()) {
-        cancelAnimationFrame(raf);
-        raf = 0;
-        cur.set(shapes.pts[i]);
-        write();
-        wrap.removeAttribute('data-morphing');
+      idle = false;
+      // Nadie lo ve (o no debe moverse): nada de rAF, salta a la forma final.
+      if (still() || !visible()) {
+        snap();
+        // Sin transformación que reinicie el flujo: se reinicia aquí (si el escenario
+        // está fuera de pantalla queda en pausa y arranca al volver).
+        wrap.dataset.run = wrap.dataset.run === 'b' ? 'a' : 'b';
         return;
       }
       from.set(cur);
@@ -114,21 +157,38 @@ function createEngine(wrap: HTMLElement, svg: SVGSVGElement, start: number): Eng
       wrap.setAttribute('data-morphing', '');
       if (!raf) raf = requestAnimationFrame(frame);
     },
+    replay,
+    rest() {
+      if (raf) snap();
+    },
     destroy() {
       ro.disconnect();
       desktop.removeEventListener('change', measure);
+      svg.removeEventListener('animationend', onEnd);
+      board.removeEventListener('pointerenter', onEnter);
       cancelAnimationFrame(raf);
       raf = 0;
     },
   };
 }
 
-export default function SystemStage({ active, paused }: { active: number; paused: boolean }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
+export default function SystemStage({
+  active,
+  paused,
+  stageRef,
+}: {
+  active: number;
+  paused: boolean;
+  /** Ref del escenario: el tablero la usa para saber si el escenario se ve (rotación). */
+  stageRef: RefObject<HTMLDivElement | null>;
+}) {
+  const wrapRef = stageRef;
   const svgRef = useRef<SVGSVGElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const activeRef = useRef(active);
-  const haloId = `sys-halo-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  /** El propio escenario en pantalla (en escritorio las columnas siguen visibles debajo). */
+  const stageIn = useInView(wrapRef, { rootMargin: '80px 0px' });
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     activeRef.current = active;
@@ -138,22 +198,36 @@ export default function SystemStage({ active, paused }: { active: number; paused
     const wrap = wrapRef.current;
     const svg = svgRef.current;
     if (!wrap || !svg) return;
-    const engine = createEngine(wrap, svg, activeRef.current);
+    const engine = createEngine(wrap, svg, activeRef.current, () => visibleRef.current);
     engineRef.current = engine;
     return () => {
       engine.destroy();
       engineRef.current = null;
     };
-  }, []);
+  }, [wrapRef]);
+
+  // Antes que `go`: si ambos cambian en el mismo render, el motor ya sabe si se ve.
+  // Al volver a entrar, los flujos corren otra tanda de ciclos; al salir, una
+  // transformación a medias termina de golpe (sin rAF para nadie).
+  useEffect(() => {
+    visibleRef.current = stageIn;
+    if (stageIn) engineRef.current?.replay();
+    else engineRef.current?.rest();
+  }, [stageIn]);
 
   useEffect(() => {
     engineRef.current?.go(active);
   }, [active]);
 
   return (
-    <div ref={wrapRef} className="sys-stage" data-paused={paused ? 'true' : 'false'} aria-hidden="true">
+    <div
+      ref={wrapRef}
+      className="sys-stage"
+      data-paused={paused || !stageIn ? 'true' : 'false'}
+      aria-hidden="true"
+    >
       <div className="sys-stage-grid bg-grid-night" />
-      <div className="ticks pointer-events-none absolute inset-2.5 text-mist-3 sm:inset-3" />
+      <div className="ticks pointer-events-none absolute inset-px text-mist-3" />
 
       <svg
         ref={svgRef}
@@ -162,13 +236,6 @@ export default function SystemStage({ active, paused }: { active: number; paused
         preserveAspectRatio="xMidYMid meet"
         focusable="false"
       >
-        <defs>
-          <radialGradient id={haloId}>
-            <stop offset="0" className="sys-halo-stop" stopOpacity="0.5" />
-            <stop offset="1" className="sys-halo-stop" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
         {/* Bajo la línea: franjas del techo (eco del rombo del logo) y puerta */}
         <g className="sys-acc" data-acc="hogar">
           {(['h-s0', 'h-s1', 'h-s2', 'h-s3', 'h-s4'] as const).map((k, i) => (
@@ -195,9 +262,8 @@ export default function SystemStage({ active, paused }: { active: number; paused
         {/* Sobre la línea: accesorios de cada sistema */}
         <g className="sys-acc" data-acc="electricidad">
           <path data-part="e-vias" className="sys-e-vias" d={INITIAL.parts['e-vias']} />
+          {/* Punto de luz en la punta del rayo (sin halo ni destellos) */}
           <g data-spark="" transform={`translate(${INITIAL.spark[0]} ${INITIAL.spark[1]})`}>
-            <circle r="30" fill={`url(#${haloId})`} className="sys-spark-halo anim-loop" />
-            <path d="M0 -11V-5M0 5V11M-11 0H-5M5 0H11M-6.5 -6.5-4 -4M4 4 6.5 6.5M6.5 -6.5 4 -4M-4 4-6.5 6.5" className="sys-spark-rays anim-loop" />
             <circle r="2.6" className="sys-spark-core" />
           </g>
         </g>

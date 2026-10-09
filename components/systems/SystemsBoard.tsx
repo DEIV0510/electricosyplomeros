@@ -1,12 +1,48 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type FocusEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { SYSTEMS } from '@/lib/content';
-import { useInView, useMediaQuery, usePrefersReducedMotion } from '@/lib/hooks';
+import { useInView, useIsLite, useMediaQuery, useMotionPaused, usePrefersReducedMotion } from '@/lib/hooks';
 import SystemStage from './SystemStage';
 
 const ROTATE_MS = 3500;
 const COUNT = SYSTEMS.length;
+/** Pasos de la rotación automática por cada entrada en pantalla: una vuelta completa y reposo. */
+const TOUR = COUNT;
+/** Fracción del escenario que debe verse (bajo la barra fija) para que la rotación corra. */
+const SEEN_RATIO = 0.5;
+
+/**
+ * true mientras al menos `ratio` del elemento se ve por debajo de la barra fija.
+ * Se decide con `intersectionRatio` y no solo con `isIntersecting`: según la especificación
+ * `isIntersecting` puede ser true con el primer píxel visible, sea cual sea el umbral
+ * (Chrome lo ata al umbral; no todos los navegadores lo hacen).
+ */
+function useSeen(ref: RefObject<Element | null>, ratio: number): boolean {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64;
+    const io = new IntersectionObserver(
+      ([e]) => setSeen(e.isIntersecting && e.intersectionRatio >= ratio - 0.01),
+      { rootMargin: `-${Math.round(nav)}px 0px 0px 0px`, threshold: [0, ratio] },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, ratio]);
+  return seen;
+}
 
 /** Índice de la columna que contiene el nodo del evento (o -1). */
 function colIndex(target: EventTarget | null): number {
@@ -19,21 +55,27 @@ function colIndex(target: EventTarget | null): number {
 /**
  * Estado compartido entre el escenario (la línea que se transforma) y las columnas.
  *  - ≥768: hover / foco / clic sobre una columna elige el sistema; rotación automática
- *    cada 3,5 s mientras la sección está en pantalla y nadie ha interactuado.
+ *    cada 3,5 s mientras nadie ha interactuado y el ESCENARIO se ve (no basta con que se
+ *    vean las columnas): una vuelta por cada vez que el escenario entra en pantalla.
+ *    No rota con movimiento reducido, en equipos limitados (`lite`) ni con las
+ *    animaciones pausadas por el visitante (WCAG 2.2.2).
  *  - <768: el escenario es sticky y el bloque que cruza la línea de lectura manda.
  * Las columnas llegan renderizadas desde el servidor (children); aquí solo se delegan eventos.
  */
 export default function SystemsBoard({ children }: { children: ReactNode }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const colsRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [took, setTook] = useState(false);
   const wide = useMediaQuery('(min-width: 768px)');
   const reduced = usePrefersReducedMotion();
+  const lite = useIsLite();
+  const motionPaused = useMotionPaused();
   /** Algo del panel en pantalla: los bucles corren y el scroll móvil se escucha. */
   const inView = useInView(boardRef);
-  /** Panel bien a la vista: solo entonces rota solo. */
-  const engaged = useInView(boardRef, { threshold: 0.3 });
+  /** El escenario (no el panel entero) a la vista: solo entonces rota solo. */
+  const stageSeen = useSeen(stageRef, SEEN_RATIO);
 
   const pick = useCallback((i: number) => {
     if (i < 0) return;
@@ -41,12 +83,19 @@ export default function SystemsBoard({ children }: { children: ReactNode }) {
     setActive(i);
   }, []);
 
-  // Rotación automática (solo ≥768, en pantalla, sin interacción y sin movimiento reducido).
+  // Rotación automática: solo ≥768, con el escenario a la vista, sin interacción, y nunca
+  // con movimiento reducido, modo `lite` o animaciones pausadas. Si el escenario sale de
+  // pantalla se detiene; al volver empieza otra vuelta completa y reposa.
   useEffect(() => {
-    if (!wide || !engaged || took || reduced) return;
-    const id = window.setInterval(() => setActive((a) => (a + 1) % COUNT), ROTATE_MS);
+    if (!wide || !stageSeen || took || reduced || lite || motionPaused) return;
+    let steps = 0;
+    const id = window.setInterval(() => {
+      steps++;
+      setActive((a) => (a + 1) % COUNT);
+      if (steps >= TOUR) window.clearInterval(id);
+    }, ROTATE_MS);
     return () => window.clearInterval(id);
-  }, [wide, engaged, took, reduced]);
+  }, [wide, stageSeen, took, reduced, lite, motionPaused]);
 
   // Móvil: el bloque que cruza la línea de lectura (debajo del escenario sticky) manda.
   useEffect(() => {
@@ -101,7 +150,7 @@ export default function SystemsBoard({ children }: { children: ReactNode }) {
 
   return (
     <div ref={boardRef} className="sys-board" data-sys={SYSTEMS[active].id} data-active={active}>
-      <SystemStage active={active} paused={!inView} />
+      <SystemStage active={active} paused={!inView} stageRef={stageRef} />
       <div ref={colsRef} className="sys-cols-wrap" onPointerOver={onPointerOver} onFocus={onFocus} onClick={onClick}>
         {children}
       </div>

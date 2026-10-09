@@ -23,7 +23,7 @@ export default function Contact() {
             <path className="ct-guides-node" d="M0 -5 5 0 0 5 -5 0Z" />
           </svg>
 
-          <div className="ct-panel on-dark">
+          <div className="ct-panel ticks on-dark">
             <div className="ct-inner">
               <SectionTag tone="dark" className="ct-tag">
                 Contacto

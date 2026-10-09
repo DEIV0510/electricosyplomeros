@@ -1,8 +1,15 @@
 /* §7.6 "Un hogar. Cuatro sistemas." — dueño: agente systems. Prefijo sys-.
    Todas las reglas dentro de @layer components (las @keyframes pueden ir fuera). */
 
-/* Flujos: el desfase recorre exactamente un periodo del patrón (bucle sin salto). */
+/* Flujos: el desfase recorre exactamente un periodo del patrón (sin salto entre ciclos ni
+   al terminar). Cada uno existe dos veces (-b) para poder reiniciarlo cambiando el nombre
+   (data-run en el escenario) sin forzar un recálculo de layout. */
 @keyframes sys-dash-e {
+  to {
+    stroke-dashoffset: -280;
+  }
+}
+@keyframes sys-dash-e-b {
   to {
     stroke-dashoffset: -280;
   }
@@ -12,7 +19,17 @@
     stroke-dashoffset: -18;
   }
 }
+@keyframes sys-dash-w-b {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
 @keyframes sys-dash-g {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+@keyframes sys-dash-g-b {
   to {
     stroke-dashoffset: -24;
   }
@@ -22,42 +39,9 @@
     stroke-dashoffset: -24;
   }
 }
-@keyframes sys-spark {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.7);
-  }
-  5% {
-    opacity: 1;
-    transform: scale(1.12);
-  }
-  10% {
-    opacity: 0.3;
-    transform: scale(0.85);
-  }
-  16% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  42% {
-    opacity: 0.2;
-    transform: scale(0.7);
-  }
-}
-@keyframes sys-halo {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  5% {
-    opacity: 1;
-  }
-  16% {
-    opacity: 0.85;
-  }
-  42% {
-    opacity: 0.35;
+@keyframes sys-dash-h-b {
+  to {
+    stroke-dashoffset: -24;
   }
 }
 
@@ -69,17 +53,28 @@
     position: relative;
     background: var(--color-paper-2);
     border-top: 1px solid var(--line);
-    padding-block: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+    padding-block: var(--section-y);
   }
   .sys-head {
     display: grid;
     gap: 1.25rem;
     margin-bottom: clamp(2rem, 1.2rem + 2.6vw, 3.5rem);
   }
+  /* H2 de sección: por debajo del H1 del hero (el pico de la página). */
   .sys-h2 {
     margin-top: 1.25rem;
-    font-size: clamp(2.1rem, 5.2vw, 4.4rem);
+    font-size: clamp(2.1rem, 4.2vw, 3.6rem);
     color: var(--color-ink);
+  }
+  @media (max-width: 359.98px) {
+    .sys-h2 {
+      font-size: min(2.1rem, 10.4vw);
+    }
+  }
+  @media (orientation: landscape) and (max-height: 520px) {
+    .sys-h2 {
+      font-size: min(clamp(2.1rem, 4.2vw, 3.6rem), 8.5svh);
+    }
   }
   .sys-head-lead {
     max-width: 30rem;
@@ -109,8 +104,9 @@
   .sys-board[data-sys="gas"] {
     --sys-glow: var(--color-gas-glow);
   }
+  /* SOPORTE: violet sobre claro y mist sobre night. El verde es solo acción / LISTO. */
   .sys-board[data-sys="hogar"] {
-    --sys-glow: var(--color-green);
+    --sys-glow: var(--color-mist);
   }
   .sys-col[data-sys="electricidad"],
   .sys-tag-item[data-sys="electricidad"] {
@@ -130,7 +126,7 @@
   .sys-col[data-sys="hogar"],
   .sys-tag-item[data-sys="hogar"] {
     --col-ink: var(--color-violet);
-    --col-glow: var(--color-green);
+    --col-glow: var(--color-mist);
   }
 
   /* ---------------------------------------------------------------- */
@@ -154,6 +150,11 @@
     .sys-stage {
       position: sticky;
       top: var(--nav-h);
+    }
+    /* WCAG 2.4.11: el foco nunca queda debajo del escenario fijo (188px + aire). El
+       scroll-padding-top del html (barra + 8px) se suma aparte. */
+    .sys-col a {
+      scroll-margin-top: 200px;
     }
   }
   @media (min-width: 768px) {
@@ -227,49 +228,65 @@
     opacity: 0.1;
   }
 
-  /* Flujos: uno por sistema; solo el activo se ve y corre (tras terminar la transformación). */
+  /* Flujos: uno por sistema; solo el activo se ve y corre, tras terminar la transformación.
+     stroke-dashoffset repinta el SVG: nunca infinito. Corre unos ciclos (≈3 s) y reposa;
+     vuelve a correr tras cada transformación (la animación se quita mientras dura), al
+     volver a entrar en pantalla y al entrar el puntero (data-run alterna el nombre). */
   .sys-flow {
     opacity: 0;
     transition: opacity 0.15s linear;
-    animation-play-state: paused;
   }
   .sys-flow[data-flow="electricidad"] {
     stroke: #fff;
     stroke-width: 2.4;
     stroke-dasharray: 26 254;
-    animation: sys-dash-e 0.95s linear infinite;
   }
   .sys-flow[data-flow="plomeria"] {
     stroke: var(--color-mist);
     stroke-width: 2;
     stroke-dasharray: 7 11;
-    animation: sys-dash-w 0.5s linear infinite;
   }
   .sys-flow[data-flow="gas"] {
     stroke: var(--color-gas-glow);
     stroke-width: 1.75;
     stroke-dasharray: 10 14;
-    animation: sys-dash-g 1.5s linear infinite;
   }
   .sys-flow[data-flow="hogar"] {
-    stroke: var(--color-green);
-    stroke-width: 3.5;
+    stroke: #fff;
+    stroke-width: 4;
     stroke-dasharray: 0.01 23.99;
-    animation: sys-dash-h 2.2s linear infinite;
-  }
-  .sys-flow[data-flow] {
-    animation-play-state: paused;
   }
   .sys-board[data-sys="electricidad"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="electricidad"],
   .sys-board[data-sys="plomeria"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="plomeria"],
   .sys-board[data-sys="gas"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="gas"],
   .sys-board[data-sys="hogar"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="hogar"] {
     opacity: 1;
-    animation-play-state: running;
     transition: opacity 0.5s var(--ease-out);
+  }
+  .sys-board[data-sys="electricidad"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="electricidad"] {
+    animation: sys-dash-e 0.95s linear 3;
   }
   .sys-board[data-sys="plomeria"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="plomeria"] {
     opacity: 0.85;
+    animation: sys-dash-w 0.5s linear 6;
+  }
+  .sys-board[data-sys="gas"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="gas"] {
+    animation: sys-dash-g 1.5s linear 2;
+  }
+  .sys-board[data-sys="hogar"] .sys-stage:not([data-morphing]) .sys-flow[data-flow="hogar"] {
+    animation: sys-dash-h 2.2s linear 2;
+  }
+  .sys-board[data-sys="electricidad"] .sys-stage[data-run="b"]:not([data-morphing]) .sys-flow[data-flow="electricidad"] {
+    animation-name: sys-dash-e-b;
+  }
+  .sys-board[data-sys="plomeria"] .sys-stage[data-run="b"]:not([data-morphing]) .sys-flow[data-flow="plomeria"] {
+    animation-name: sys-dash-w-b;
+  }
+  .sys-board[data-sys="gas"] .sys-stage[data-run="b"]:not([data-morphing]) .sys-flow[data-flow="gas"] {
+    animation-name: sys-dash-g-b;
+  }
+  .sys-board[data-sys="hogar"] .sys-stage[data-run="b"]:not([data-morphing]) .sys-flow[data-flow="hogar"] {
+    animation-name: sys-dash-h-b;
   }
 
   /* Accesorios */
@@ -291,29 +308,8 @@
     stroke: var(--color-electric-glow);
     stroke-width: 1.5;
   }
-  .sys-halo-stop {
-    stop-color: var(--color-electric-glow);
-  }
   .sys-spark-core {
     fill: #fff;
-  }
-  .sys-spark-rays {
-    fill: none;
-    stroke: var(--color-mist);
-    stroke-width: 1.5;
-    stroke-linecap: round;
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: sys-spark 2.8s var(--ease-out) infinite;
-    animation-play-state: paused;
-  }
-  .sys-spark-halo {
-    animation: sys-halo 2.8s var(--ease-out) infinite;
-    animation-play-state: paused;
-  }
-  .sys-board[data-sys="electricidad"] .sys-spark-rays,
-  .sys-board[data-sys="electricidad"] .sys-spark-halo {
-    animation-play-state: running;
   }
   .sys-w-joints {
     fill: var(--color-night);
@@ -350,7 +346,7 @@
   }
   .sys-h-door {
     fill: none;
-    stroke: var(--color-green);
+    stroke: var(--color-mist-2);
     stroke-width: 1.5;
     stroke-linejoin: round;
     opacity: 0;
@@ -615,7 +611,7 @@
   }
   .sys-svc-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     padding-block: 11px;
     border-bottom: 1px solid var(--line);
@@ -623,10 +619,12 @@
     font-weight: 550;
     line-height: 1.3;
   }
+  /* Rombo centrado en la PRIMERA línea (los ítems de dos líneas no lo bajan al medio). */
   .sys-svc-node {
     flex: none;
     width: 7px;
     height: 7px;
+    margin-top: calc((1.3em - 7px) / 2);
     transform: rotate(45deg);
     background: var(--col-ink);
   }
@@ -644,7 +642,10 @@
     color: var(--color-green-ink);
   }
   @media (min-width: 768px) {
+    /* Fila compartida (subgrid): los títulos de una línea bajan hasta su texto, así todos
+       quedan a 10px de la descripción y sus líneas base se alinean. */
     .sys-col-title {
+      align-self: end;
       margin-top: 34px;
     }
     .sys-col-line {

@@ -150,7 +150,11 @@ export const SCOPE_TRACE: Record<SystemId | 'none', string> = {
   none: 'M0 42H280',
 };
 
-export function Scope({ sys, done }: { sys: SystemId | null; done: boolean }) {
+/**
+ * `run` cambia con cada paso: el pulso (bucle finito de stroke-dashoffset) vuelve a correr
+ * al interactuar. Al volver a entrar en pantalla lo reinicia el CSS (data-paused).
+ */
+export function Scope({ sys, done, run }: { sys: SystemId | null; done: boolean; run: string }) {
   const d = SCOPE_TRACE[sys ?? 'none'];
   return (
     <svg
@@ -172,7 +176,7 @@ export function Scope({ sys, done }: { sys: SystemId | null; done: boolean }) {
       {/* key: al cambiar de servicio la traza se vuelve a dibujar */}
       <g key={sys ?? 'none'}>
         <path className="dx-scope-trace" pathLength={100} d={d} />
-        <path className="dx-scope-pulse anim-loop" pathLength={100} d={d} />
+        <path key={run} className="dx-scope-pulse anim-loop" pathLength={100} d={d} />
       </g>
       <rect className="dx-scope-sweep anim-loop" x="0" y="0" width="1.5" height={SCOPE_H} />
     </svg>

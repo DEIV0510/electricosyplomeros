@@ -10,8 +10,9 @@ import { useEffect, useRef, type CSSProperties } from 'react';
  *   relleno llega a cada nodo justo cuando esa sección llega al centro de la pantalla.
  *   Este componente solo mide (al montar y cuando cambia el alto de la página).
  * - Cada nodo se enciende cuando su sección cruza el centro (IntersectionObserver).
- * - Sobre secciones oscuras cambia de tono (muestrea el fondo bajo cada nodo al
- *   detenerse el scroll; nada de trabajo por fotograma).
+ * - Sobre secciones oscuras cambia de tono (muestrea el fondo bajo cada rombo y bajo el
+ *   centro de cada rótulo, ≤ 8 veces por segundo durante el scroll y al detenerse; nada de
+ *   trabajo por fotograma).
  * Sin soporte de scroll-driven: riel estático con los nodos igual de vivos.
  */
 
@@ -37,15 +38,24 @@ function lightnessOf(color: string): number | null {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-function toneAt(x: number, y: number): 'dark' | 'light' {
-  let el: Element | null = document.elementFromPoint(x, y);
+type Surface = { tone: 'dark' | 'light'; color: string | null };
+
+/** Superficie (tono y color de fondo opaco) bajo un punto. */
+function surfaceAt(x: number, y: number): Surface {
+  // Solo cuenta la página (secciones y footer): se saltan capas fijas que no son fondo,
+  // como el botón flotante o el indicador de desarrollo de Next.
+  const stack = document.elementsFromPoint(x, y);
+  let el: Element | null = stack.find((e) => e.closest('main, footer')) ?? stack[0] ?? null;
   while (el && el !== document.documentElement) {
-    const l = lightnessOf(getComputedStyle(el).backgroundColor);
-    if (l !== null) return l < 0.32 ? 'dark' : 'light';
+    const color = getComputedStyle(el).backgroundColor;
+    const l = lightnessOf(color);
+    if (l !== null) return { tone: l < 0.32 ? 'dark' : 'light', color };
     el = el.parentElement;
   }
-  return 'light';
+  return { tone: 'light', color: null };
 }
+
+const toneAt = (x: number, y: number) => surfaceAt(x, y).tone;
 
 export default function CircuitRail() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -72,14 +82,46 @@ export default function CircuitRail() {
         root.style.setProperty('--rail-b1', `${Math.round(b1)}px`);
       };
 
-      // 2) Tono claro/oscuro bajo cada nodo y bajo el centro del riel.
+      // 2) Tono claro/oscuro bajo el centro del riel, bajo cada rombo y bajo cada rótulo.
+      //    El rótulo cuelga 16–130 px por debajo de su rombo: se colorea según la superficie
+      //    que hay debajo de la mayor parte de él (5 puntos) y, si cruza el borde entre paper
+      //    y night, lleva un fondo sólido (data-split) para no quedar medio invisible.
+      //    Los puntos de los extremos van FUERA del rótulo (EDGE px, lo mismo que el aro del
+      //    fondo en nav.css): un borde en los primeros o últimos píxeles del rótulo también
+      //    cuenta como cruce. Dentro de la caja no basta: Chrome redondea el hit-test al
+      //    píxel y un punto a 0,7 px del borde ya devuelve la sección de al lado, aunque la
+      //    pintura (y el glifo) sigan sobre la otra.
+      const EDGE = 3;
+      const labels = nodes.map((n) => n.querySelector<HTMLElement>('.rail-label'));
       const sample = () => {
         const x = root.getBoundingClientRect().left + 0.5;
         root.dataset.tone = toneAt(x, window.innerHeight / 2);
-        for (const n of nodes) {
-          const r = n.getBoundingClientRect();
-          n.dataset.tone = toneAt(x, r.top);
-        }
+        nodes.forEach((n, i) => {
+          n.dataset.dotTone = toneAt(x, n.getBoundingClientRect().top);
+          const label = labels[i];
+          if (!label) return;
+          const lr = label.getBoundingClientRect();
+          const lx = lr.left + lr.width / 2;
+          const ys = [
+            lr.top - EDGE,
+            lr.top + lr.height * 0.25,
+            lr.top + lr.height * 0.5,
+            lr.top + lr.height * 0.75,
+            lr.bottom + EDGE,
+          ];
+          // surfaceAt solo cuenta main/footer: los puntos de fuera no tocan el rombo del riel.
+          const under = ys.map((y) => surfaceAt(lx, y));
+          const dark = under.filter((s) => s.tone === 'dark').length;
+          const tone = dark >= 3 ? 'dark' : 'light';
+          const split = dark > 0 && dark < under.length;
+          n.dataset.tone = tone;
+          n.dataset.split = split ? 'true' : 'false';
+          // El fondo sólido usa el color real de la superficie mayoritaria (paper, paper-2,
+          // night…), así solo se nota sobre la parte que cruza al otro tono.
+          const bg = split ? under.find((s) => s.tone === tone)?.color : null;
+          if (bg) n.style.setProperty('--rail-bg', bg);
+          else n.style.removeProperty('--rail-bg');
+        });
       };
 
       let measureRaf = 0;

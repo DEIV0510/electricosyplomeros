@@ -46,7 +46,6 @@ const jsonLd = {
     "@type": "ContactPoint",
     telephone: CONTACT.phoneE164,
     contactType: "customer service",
-    areaServed: "CO",
     availableLanguage: ["es"],
   },
 };

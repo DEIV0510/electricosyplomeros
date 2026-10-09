@@ -45,7 +45,8 @@
     opacity: 0;
     transition: opacity 250ms var(--ease-out);
   }
-  .nav-root[data-solid="true"] .nav-bg {
+  .nav-root[data-solid="true"] .nav-bg,
+  html:not(.js) .nav-bg {
     opacity: 1;
   }
 
@@ -66,7 +67,7 @@
   }
   .nav-logo {
     display: block;
-    height: 40px;
+    height: 44px;
     width: auto;
     transform-origin: 0 50%;
     transition: transform 250ms var(--ease-out);
@@ -154,10 +155,12 @@
     gap: 8px;
     min-height: 44px;
     padding: 0 10px;
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.03em;
+    /* Mismo tratamiento del número en todo el sitio (como el hero): Archivo 650 tabular. */
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
     color: var(--color-ink-2);
     white-space: nowrap;
     transition: color 200ms var(--ease-out);
@@ -291,6 +294,11 @@
     color: var(--color-ink);
     text-decoration: none;
   }
+  @media (max-width: 359.98px) {
+    .nav-mlink {
+      grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    }
+  }
   .nav-mlink-num {
     font-family: var(--font-mono);
     font-size: 0.75rem;
@@ -298,8 +306,9 @@
     letter-spacing: 0.14em;
     color: var(--color-ink-3);
   }
+  /* Mínimo 1.5rem: a 320 px "SOLUCIONES" (la más larga) cabe sin tocar la flecha. */
   .nav-mlink-text {
-    font-size: clamp(1.75rem, 7.4vw, 2.5rem);
+    font-size: clamp(1.5rem, 7.4vw, 2.5rem);
     line-height: 1;
     padding-top: 0.06em;
   }
@@ -348,10 +357,11 @@
     min-height: 56px;
     border: 1.5px solid var(--color-ink);
     border-radius: 2px;
-    font-family: var(--font-mono);
-    font-size: 1.0625rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
     color: var(--color-ink);
     transition:
       background-color 200ms var(--ease-out),
@@ -426,6 +436,21 @@
       justify-content: flex-start;
     }
   }
+  /* Móvil horizontal: enlaces limitados por la altura (DESIGN §2) para que quepan más. */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .nav-menu-inner {
+      padding-top: 14px;
+    }
+    .nav-mlink {
+      min-height: 56px;
+    }
+    .nav-mlink-text {
+      font-size: clamp(1.5rem, 7.5svh, 2.5rem);
+    }
+    .nav-menu-foot {
+      margin-top: 24px;
+    }
+  }
 
   @media (min-width: 1024px) {
     /* Logo · enlaces centrados · acciones (columnas laterales flexibles). */
@@ -439,10 +464,11 @@
       margin-right: 0;
     }
     .nav-logo {
-      height: 52px;
+      height: 60px;
     }
+    /* Compacta: 48 px */
     .nav-root[data-solid="true"] .nav-logo {
-      transform: scale(0.846);
+      transform: scale(0.8);
     }
     .nav-desk {
       display: block;
@@ -530,10 +556,11 @@
     border-radius: 50%;
     background: var(--color-green);
     color: var(--color-ink);
-    /* Separación mínima del contenido de debajo: aro claro + sombra corta. */
+    /* Separación del contenido solo con líneas (sin sombras, DESIGN §2): aro claro + filo
+       de tinta. Sobre night basta el aro claro. */
     box-shadow:
       0 0 0 2px var(--color-paper),
-      0 10px 22px -10px rgb(20 16 31 / 0.5);
+      0 0 0 3px var(--color-ink);
     transition:
       background-color 200ms var(--ease-out),
       transform 150ms var(--ease-out);
@@ -559,7 +586,10 @@
   html.lite .wa-ring {
     display: none;
   }
-  /* Etiqueta al pasar el mouse (solo puntero fino; nunca intercepta clics). */
+  /* Etiqueta al pasar el mouse o con foco (solo puntero fino), WCAG 1.4.13: oculta no
+     intercepta clics; visible es parte del enlace, así que se puede llevar el puntero
+     encima sin que desaparezca (y un clic en ella abre lo mismo). Escape la oculta
+     (data-tip="off", WhatsAppButton.tsx) hasta que se retiren el puntero y el foco. */
   .wa-label {
     position: absolute;
     right: calc(100% + 12px);
@@ -580,6 +610,16 @@
       opacity 200ms var(--ease-out),
       transform 250ms var(--ease-out);
   }
+  /* Puente invisible sobre el hueco de 12 px entre la etiqueta y el círculo: el puntero
+     pasa de uno a otra sin perder el hover. */
+  .wa-label::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: 12px;
+  }
   @media (hover: hover) and (pointer: fine) {
     .wa-label {
       display: block;
@@ -588,6 +628,12 @@
     .wa-btn:focus-visible .wa-label {
       opacity: 1;
       transform: translate3d(0, -50%, 0);
+      pointer-events: auto;
+    }
+    .wa-root[data-tip="off"] .wa-btn .wa-label {
+      opacity: 0;
+      transform: translate3d(8px, -50%, 0);
+      pointer-events: none;
     }
   }
   @media (min-width: 1024px) {
@@ -694,8 +740,10 @@
     color: var(--color-violet);
   }
   .ft-phone {
-    font-family: var(--font-mono);
-    letter-spacing: 0.03em;
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
   }
   .ft-bottom {
     display: flex;
@@ -709,6 +757,21 @@
     border-top: 1px solid var(--line-strong);
     font-size: 0.875rem;
     color: var(--color-ink-3);
+  }
+  /* Pausar animaciones (WCAG 2.2.2) + Volver arriba. Se parten en dos filas si no caben. */
+  .ft-bottom-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 16px;
+  }
+  .ft-bottom .ft-motion {
+    padding: 0;
+    text-decoration: none;
+    color: var(--color-ink-2);
+  }
+  .ft-bottom .ft-motion:hover {
+    color: var(--color-violet);
   }
   .ft-top {
     display: inline-flex;
@@ -874,13 +937,14 @@
   .rail-node[data-state="active"] .rail-label {
     color: var(--color-ink);
   }
-  /* Sobre superficies oscuras */
-  .rail-node[data-tone="dark"] .rail-dot {
+  /* Sobre superficies oscuras: el rombo mira el fondo bajo él (data-dot-tone) y el rótulo
+     el fondo bajo su centro (data-tone); CircuitRail.tsx los muestrea por separado. */
+  .rail-node[data-dot-tone="dark"] .rail-dot {
     background: var(--color-night);
     border-color: var(--color-mist-3);
   }
-  .rail-node[data-tone="dark"][data-state="passed"] .rail-dot,
-  .rail-node[data-tone="dark"][data-state="active"] .rail-dot {
+  .rail-node[data-dot-tone="dark"][data-state="passed"] .rail-dot,
+  .rail-node[data-dot-tone="dark"][data-state="active"] .rail-dot {
     background: var(--color-electric-glow);
     border-color: var(--color-electric-glow);
   }
@@ -892,5 +956,16 @@
   }
   .rail-node[data-tone="dark"][data-state="active"] .rail-label {
     color: var(--color-mist);
+  }
+  /* Rótulo a caballo entre paper y night: fondo sólido del tono elegido (sin cambiar su
+     caja: el relleno se pinta con un aro de 3 px, igual que EDGE en CircuitRail.tsx, que
+     muestrea 3 px por fuera de cada extremo), así conserva el contraste entero. */
+  .rail-node[data-split="true"] .rail-label {
+    background: var(--rail-bg, var(--color-paper));
+    box-shadow: 0 0 0 3px var(--rail-bg, var(--color-paper));
+  }
+  .rail-node[data-split="true"][data-tone="dark"] .rail-label {
+    background: var(--rail-bg, var(--color-night));
+    box-shadow: 0 0 0 3px var(--rail-bg, var(--color-night));
   }
 }

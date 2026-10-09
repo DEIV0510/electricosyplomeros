@@ -58,6 +58,8 @@
   --nav-h: 64px;
   --gutter: clamp(16px, 4.2vw, 40px);
   --maxw: 1320px;
+  /* Ritmo vertical común de las secciones */
+  --section-y: clamp(4.5rem, 3rem + 6vw, 8.5rem);
   --line: rgb(58 0 128 / 0.1);
   --line-strong: rgb(58 0 128 / 0.22);
   --line-night: rgb(157 140 255 / 0.14);
@@ -65,6 +67,12 @@
 @media (min-width: 1024px) {
   :root {
     --nav-h: 76px;
+  }
+}
+/* Monitores muy grandes: el contenido crece con la pantalla */
+@media (min-width: 2200px) {
+  :root {
+    --maxw: 1560px;
   }
 }
 
@@ -97,6 +105,10 @@
   ::selection {
     background: var(--color-violet);
     color: #fff;
+  }
+  /* Evita una sola palabra en la última línea de los párrafos */
+  p {
+    text-wrap: pretty;
   }
   :focus-visible {
     outline: 2px solid var(--color-electric);
@@ -177,6 +189,7 @@
     font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
     line-height: 1.5;
     color: var(--color-ink-2);
+    text-wrap: pretty;
   }
 
   /* Botones / CTAs */
@@ -352,12 +365,41 @@
     transform: none;
   }
 
-  /* Pausa de animaciones decorativas fuera de pantalla o en equipos lentos */
+  /* Pausa de animaciones decorativas: fuera de pantalla, en equipos lentos o porque el
+     visitante las pausó (botón del footer, WCAG 2.2.2) */
   [data-paused="true"] *,
   [data-paused="true"]::before,
   [data-paused="true"]::after,
   html.lite .anim-loop,
-  html.lite .anim-loop * {
+  html.lite .anim-loop *,
+  html.motion-paused .anim-loop,
+  html.motion-paused .anim-loop * {
     animation-play-state: paused !important;
+  }
+
+  /* Botón Pausar / Reanudar animaciones */
+  .motion-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ink-2);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    transition: color 0.2s var(--ease-out);
+  }
+  .motion-toggle:hover {
+    color: var(--color-ink);
+  }
+  .motion-toggle-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid currentColor;
   }
 }

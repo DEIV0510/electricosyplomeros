@@ -1,6 +1,8 @@
 /* Pantalla de carga "SISTEMA LISTO" (components/LoadingScreen.tsx). Dueño: boot-nav.
    La controla el script del <head> (lib/boot.ts) con clases en <html>:
    is-booting → visible · boot-done → sale (420 ms) · se retira con boot-end.
+   La secuencia dura ~650 ms desde el primer pintado; boot-done llega a los 950 ms del
+   primer fotograma, así que "● SISTEMA LISTO" se lee ~500 ms antes de la salida.
    Solo transform/opacity (y stroke-dashoffset en el rombo pequeño). */
 
 @keyframes boot-run {
@@ -210,7 +212,7 @@
     inset: 0;
     background: var(--color-violet);
     transform: translate3d(-100%, 0, 0);
-    animation: boot-run 480ms linear 50ms both;
+    animation: boot-run 320ms linear 30ms both;
   }
   /* Cabeza del pulso: tramo brillante + punto. */
   .boot-head {
@@ -220,7 +222,7 @@
     width: 44px;
     height: 2px;
     background: linear-gradient(90deg, rgb(75 46 245 / 0), var(--color-electric));
-    animation: boot-fade-out 160ms var(--ease-out) 540ms both;
+    animation: boot-fade-out 140ms var(--ease-out) 355ms both;
   }
   .boot-head::after {
     content: "";
@@ -271,7 +273,7 @@
   .boot-node-core {
     background: var(--c);
     transform: rotate(45deg) scale(0);
-    animation: boot-node-on 260ms var(--ease-spring) var(--d) both;
+    animation: boot-node-on 220ms var(--ease-spring) var(--d) both;
   }
   .boot-node-halo {
     position: absolute;
@@ -281,7 +283,7 @@
     height: 26px;
     border: 1.5px solid var(--c);
     opacity: 0;
-    animation: boot-halo 560ms var(--ease-out) var(--d) both;
+    animation: boot-halo 480ms var(--ease-out) var(--d) both;
   }
   .boot-node-tick {
     position: absolute;
@@ -290,7 +292,7 @@
     height: 9px;
     background: var(--c);
     transform: scaleY(0);
-    animation: boot-tick 180ms var(--ease-out) calc(var(--d) + 60ms) both;
+    animation: boot-tick 160ms var(--ease-out) calc(var(--d) + 40ms) both;
   }
   .boot-node[data-side="bottom"] .boot-node-tick {
     top: 10px;
@@ -338,14 +340,14 @@
     stroke-linejoin: round;
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
-    animation: boot-draw 240ms var(--ease-out) 500ms both;
+    animation: boot-draw 200ms var(--ease-out) 330ms both;
   }
   .boot-mark-stripe {
     fill: var(--color-violet);
     transform-box: fill-box;
     transform-origin: 0 50%;
     transform: scaleX(0);
-    animation: boot-stripe 220ms var(--ease-out) calc(560ms + var(--i) * 28ms) both;
+    animation: boot-stripe 180ms var(--ease-out) calc(370ms + var(--i) * 24ms) both;
   }
 
   /* ---------------- Rótulo de estado ---------------- */
@@ -367,13 +369,13 @@
     padding-left: 0.14em;
   }
   .boot-status-a {
-    animation: boot-label-out 200ms var(--ease-in-out) 600ms both;
+    animation: boot-label-out 180ms var(--ease-in-out) 380ms both;
   }
   .boot-status-b {
     color: var(--color-green-ink);
     font-weight: 600;
     opacity: 0;
-    animation: boot-label-in 260ms var(--ease-out) 660ms both;
+    animation: boot-label-in 240ms var(--ease-out) 420ms both;
   }
   .boot-status-dot {
     position: relative;
@@ -389,7 +391,7 @@
     border-radius: 50%;
     border: 1.5px solid var(--color-green);
     opacity: 0;
-    animation: boot-ring 640ms var(--ease-out) 720ms both;
+    animation: boot-ring 640ms var(--ease-out) 470ms both;
   }
 
   /* Si la salida llega antes de que termine la secuencia, todo salta al estado final

@@ -16,7 +16,7 @@ import {
   type StepNo,
   type View,
 } from './model';
-import type { DxState } from './DiagnosticTool';
+import type { DxState, FieldHint } from './DiagnosticTool';
 
 type PickKey = 'problem' | 'place' | 'city';
 
@@ -25,7 +25,7 @@ type ConsoleProps = {
   message: string;
   url: string;
   onPick: (key: PickKey, id: string) => void;
-  onGo: (view: View) => void;
+  onGo: (view: View, field?: FieldHint) => void;
   onBack: () => void;
   onRestart: () => void;
   onDetails: (v: string) => void;
@@ -115,6 +115,14 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
     : STEPS.slice(0, 4)
         .map((step) => valueText(s.a, step) ?? '—')
         .join(' · ');
+  // Para lectores de pantalla: solo lo respondido (sin las rayas "—" de los pendientes).
+  const answered = STEPS.slice(0, 4)
+    .map((step) => valueText(s.a, step))
+    .filter(Boolean)
+    .join(', ');
+  const spokenSummary = isResult
+    ? 'Mensaje: así llega tu mensaje'
+    : `Lectura ${done} de 5${answered ? `: ${answered}` : ''}`;
 
   return (
     <aside className="dx-readout" data-open={s.readoutOpen ? 'true' : 'false'} aria-label="Lectura del diagnóstico">
@@ -125,8 +133,13 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
         aria-controls="dx-readout-body"
         onClick={onToggleReadout}
       >
-        <span className="t-label dx-readout-k">{isResult ? 'Mensaje' : `Lectura ${done}/5`}</span>
-        <span className="dx-readout-sum">{summary}</span>
+        <span className="t-label dx-readout-k" aria-hidden="true">
+          {isResult ? 'Mensaje' : `Lectura ${done}/5`}
+        </span>
+        <span className="dx-readout-sum" aria-hidden="true">
+          {summary}
+        </span>
+        <span className="sr-only">{spokenSummary}</span>
         <IconChevron size={20} className="dx-readout-chev" />
       </button>
 
@@ -136,7 +149,7 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
           <span className="t-label dx-readout-sys">{sysLabel}</span>
         </div>
         <div className="dx-scope-wrap">
-          <Scope sys={s.a.service} done={isResult} />
+          <Scope sys={s.a.service} done={isResult} run={String(s.view)} />
           <span className="t-label dx-scope-tag">{isResult ? 'Listo' : 'En curso'}</span>
         </div>
 
@@ -150,6 +163,8 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
             {STEPS.map((step) => {
               const v = valueText(s.a, step);
               const current = s.view === step;
+              // Nombre accesible limpio: "Lugar: pendiente. Ir a este paso" (sin leer la raya).
+              const spoken = v && v.length > 60 ? `${v.slice(0, 57).trimEnd()}…` : v;
               return (
                 <li key={step}>
                   <button
@@ -157,15 +172,15 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
                     className="dx-row"
                     data-done={v ? 'true' : 'false'}
                     aria-current={current ? 'step' : undefined}
+                    aria-label={`${STEP_META[step].label}: ${spoken ?? 'pendiente'}. ${v ? 'Cambiar' : 'Ir a este paso'}`}
                     onClick={() => onGo(step)}
                     data-row={step}
                   >
                     <span className="t-label dx-row-k">{STEP_META[step].label}</span>
-                    <span className="dx-row-v">{v ?? '—'}</span>
+                    <span className="dx-row-v">{v ?? <span aria-hidden="true">—</span>}</span>
                     <span className="dx-row-s" aria-hidden="true">
                       {v ? <IconCheck size={16} strokeWidth={2.25} /> : null}
                     </span>
-                    <span className="sr-only">{v ? ', listo. Cambiar' : ', pendiente. Ir a este paso'}</span>
                   </button>
                 </li>
               );
@@ -403,13 +418,14 @@ function MissingSummary({ missing, onGo }: { missing: StepNo[]; onGo: (v: View) 
 /*  Resultado + CTA a WhatsApp                                         */
 /* ------------------------------------------------------------------ */
 function Result({ s, url, message, onGo, onCta, onCopy, onRestart }: ConsoleProps) {
-  const rows: { step: StepNo; label: string; value: string | null }[] = STEPS.map((step) => ({
+  const rows: { step: StepNo; label: string; value: string | null; field?: FieldHint }[] = STEPS.map((step) => ({
     step,
     label: STEP_META[step].label,
     value: valueText(s.a, step),
+    field: step === 5 ? 'details' : undefined,
   }));
   const name = s.a.name.trim();
-  if (name) rows.push({ step: 5, label: 'Nombre', value: name });
+  if (name) rows.push({ step: 5, label: 'Nombre', value: name, field: 'name' });
   const sending = s.send === 'sending';
 
   return (
@@ -432,7 +448,7 @@ function Result({ s, url, message, onGo, onCta, onCopy, onRestart }: ConsoleProp
               <button
                 type="button"
                 className="dx-edit"
-                onClick={() => onGo(r.step)}
+                onClick={() => onGo(r.step, r.field)}
                 aria-label={`Editar ${r.label.toLowerCase()}`}
                 data-edit={r.label.toLowerCase()}
               >

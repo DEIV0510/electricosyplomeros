@@ -30,13 +30,13 @@ export const CITIES = [
     name: 'Medellín',
     region: 'Antioquia',
     // Coordenadas públicas del centro de la ciudad (dato geográfico, no una dirección del negocio).
-    coords: '6.2442° N · 75.5812° O',
+    coords: '6.24° N · 75.58° O',
   },
   {
     id: 'monteria',
     name: 'Montería',
     region: 'Córdoba',
-    coords: '8.7479° N · 75.8814° O',
+    coords: '8.75° N · 75.88° O',
   },
 ] as const;
 
@@ -132,7 +132,7 @@ export const NAV = [
 export const SEO = {
   title: 'Eléctricos y Plomeros | Soluciones Eficientes en Medellín y Montería',
   description:
-    'Electricista y plomero en Medellín y Montería. Instalación y reparación de redes eléctricas, plomería, gas y asistencia para el hogar. Cotiza por WhatsApp al 313 894 8186.',
+    'Electricista y plomero en Medellín y Montería: redes eléctricas, plomería, gas y asistencia para el hogar. Cotiza por WhatsApp al 313 894 8186.',
   keywords: [
     'electricista Medellín',
     'plomero Medellín',

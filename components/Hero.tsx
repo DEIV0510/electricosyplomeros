@@ -2,12 +2,14 @@ import SectionTag from '@/components/ui/SectionTag';
 import { CallLink, WhatsAppLink } from '@/components/ui/Cta';
 import { IconArrowDown, IconPhone } from '@/components/ui/Icons';
 import HomeSystem from '@/components/HomeSystem';
-import { CITIES, CONTACT } from '@/lib/content';
+import { BRAND, CITIES, CONTACT } from '@/lib/content';
 
 /**
  * Hero — 01 · DETECTAR (DESIGN.md §7.3).
  * Componente de servidor: el texto, el H1 y los CTA no dependen de JS.
  * La secuencia de entrada es CSS (styles/hero.css) y espera a que termine la carga.
+ * El rótulo superior lleva el nombre de la empresa (el logo del menú es pequeño);
+ * el paso "01 · DETECTAR" vive en la lectura del HomeSystem.
  */
 export default function Hero() {
   return (
@@ -16,40 +18,41 @@ export default function Hero() {
 
       <div className="hero-inner container-x relative grid items-start gap-y-10 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:gap-x-10">
         <div className="hero-copy">
-          <SectionTag index="01" className="whitespace-nowrap">
-            Detectar
+          <SectionTag className="hero-brand whitespace-nowrap">
+            <span className="hero-brand-name">{BRAND.name}</span>
+            <span className="hero-brand-tag"> · {BRAND.tagline}</span>
           </SectionTag>
 
-          <p className="hero-ask mt-7 lg:mt-9">
+          <p className="hero-ask">
             <span className="hero-ask-text">¿Qué está pasando?</span>
             <span className="hero-caret" aria-hidden="true" />
           </p>
 
-          <h1 id="hero-title" className="hero-title t-display mt-3 text-ink">
+          {/* La barra verde de "encendido" es un ::after de .hero-solve: así no parte el
+              texto ("SOLUCIÓN.") ni el nombre accesible del titular. */}
+          <h1 id="hero-title" className="hero-title t-display text-ink">
             <span className="hero-line hero-line-1">Tranquilo.</span>{' '}
             <span className="hero-line hero-line-2">Tenemos la</span>{' '}
             <span className="hero-line hero-line-3">
-              <span className="hero-solve">
-                solución
-                <span className="hero-power" aria-hidden="true" />
-              </span>
-              .
+              <span className="hero-solve">solución</span>.
             </span>
           </h1>
 
-          <p className="hero-in hero-in-1 t-lead mt-7 max-w-[32ch] lg:mt-8">
+          <p className="hero-lead hero-in hero-in-1 t-lead max-w-[32ch]">
             Electricidad, plomería, gas y asistencia para tu hogar.
           </p>
 
-          <div className="hero-in hero-in-2 mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <WhatsAppLink className="w-full sm:w-auto">Cotizar por WhatsApp</WhatsAppLink>
-            <a href="#diagnostico" className="btn btn-secondary w-full sm:w-auto">
+          {/* Disposición de CTA y datos en hero.css (no en utilidades): en móviles
+              horizontales estrechos vuelven a apilarse, y una utilidad sm:* le ganaría. */}
+          <div className="hero-ctas hero-in hero-in-2">
+            <WhatsAppLink>Cotizar por WhatsApp</WhatsAppLink>
+            <a href="#diagnostico" className="btn btn-secondary">
               <span>Encontrar una solución</span>
               <IconArrowDown size={20} className="hero-arrow" />
             </a>
           </div>
 
-          <div className="hero-in hero-in-3 hero-facts mt-6 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-6">
+          <div className="hero-in hero-in-3 hero-facts">
             <CallLink className="hero-call">
               <IconPhone size={18} />
               <span>{CONTACT.phoneDisplay}</span>

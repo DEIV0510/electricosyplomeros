@@ -1,24 +1,85 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useInView } from '@/lib/hooks';
+import { useEffect, useRef, useState } from 'react';
+import { useIsLite, useMotionPaused, usePrefersReducedMotion } from '@/lib/hooks';
 
 /** Largo visible del pulso (px) y radio de la esquina del enlace (px). */
 const PULSE_PX = 64;
 const CORNER = 16;
+/** Reposo mínimo tras una pasada antes de que el puntero o el foco la reactiven (ms). */
+const REST_MS = 1200;
 
 /**
  * Enlace entre los dos nodos-ciudad de la cobertura. Mide los nodos (HTML) y dibuja
  * una ruta ortogonal: baja desde Montería y gira hacia Medellín (en móvil es una línea
- * vertical). Dos pulsos la recorren en sentidos opuestos; los bucles se pausan fuera de
- * pantalla (`data-paused`) y en modo lite (`anim-loop`).
+ * vertical). Dos pulsos la recorren en sentidos opuestos.
+ *
+ * Los pulsos animan `stroke-dashoffset` (costo de hilo principal), así que NO son un bucle
+ * infinito (DESIGN §2 Movimiento): con `data-run` corren 2 idas y vueltas y reposan. Se
+ * reactivan al volver a entrar en pantalla o al interactuar con el escenario (puntero o
+ * foco). No arrancan con animaciones pausadas (botón del footer), en modo lite ni con
+ * movimiento reducido; si se pausan a mitad de pasada, se detienen en el estado de reposo.
  *
  * Escribe la geometría directamente en el DOM (sin estado de React): solo se recalcula
  * cuando cambia el tamaño del escenario o de los nombres (carga de la fuente).
  */
 export default function CoverageLink() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const onScreen = useInView(svgRef, { rootMargin: '120px 0px' });
+  /** El escenario se ve al menos un 20 % (la pasada arranca cuando ya se puede seguir). */
+  const [onScreen, setOnScreen] = useState(false);
+  /** La pasada de esta visita ya terminó (se limpia al salir de pantalla o al interactuar). */
+  const [ended, setEnded] = useState(false);
+  const endedAt = useRef(0);
+
+  const paused = useMotionPaused();
+  const lite = useIsLite();
+  const reduced = usePrefersReducedMotion();
+  const canRun = !paused && !lite && !reduced;
+  const running = onScreen && canRun && !ended;
+
+  // Al salir del todo de pantalla se rearma, así cada nueva entrada reinicia la pasada.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        setOnScreen(entry.isIntersecting && entry.intersectionRatio >= 0.2);
+        if (!entry.isIntersecting) setEnded(false);
+      },
+      { threshold: [0, 0.2] },
+    );
+    io.observe(svg);
+    return () => io.disconnect();
+  }, []);
+
+  // Fin de la pasada: el pulso de vuelta es el último en terminar.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onEnd = (e: AnimationEvent) => {
+      if (e.animationName !== 'cov-up') return;
+      endedAt.current = performance.now();
+      setEnded(true);
+    };
+    svg.addEventListener('animationend', onEnd);
+    return () => svg.removeEventListener('animationend', onEnd);
+  }, []);
+
+  // En reposo, pasar el puntero o llevar el foco al escenario la reactiva.
+  useEffect(() => {
+    const stage = svgRef.current?.parentElement;
+    if (!stage || !ended || !canRun) return;
+    const wake = () => {
+      if (performance.now() - endedAt.current < REST_MS) return;
+      setEnded(false);
+    };
+    stage.addEventListener('pointerenter', wake);
+    stage.addEventListener('focusin', wake);
+    return () => {
+      stage.removeEventListener('pointerenter', wake);
+      stage.removeEventListener('focusin', wake);
+    };
+  }, [ended, canRun]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -87,6 +148,7 @@ export default function CoverageLink() {
       aria-hidden="true"
       focusable="false"
       fill="none"
+      data-run={running ? '' : undefined}
       data-paused={onScreen ? undefined : 'true'}
     >
       <path data-cov-line="" className="cov-line" />

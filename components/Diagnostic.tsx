@@ -17,9 +17,13 @@ export default function Diagnostic() {
           <div data-reveal>
             <SectionTag index="02">Entender</SectionTag>
             <h2 id="dx-title" className="t-display dx-h2">
-              <span className="block">Algo no está</span>
-              <span className="block">
-                funcionando<span className="dx-h2-dot">.</span>
+              <span className="block">Algo no está</span>{' '}
+              {/* Acento de titular sobre paper: segunda línea en violet (DESIGN §2).
+                  <wbr>: si el usuario amplía el espaciado de texto (WCAG 1.4.12) y la palabra
+                  ya no cabe, parte por sílaba ("FUNCIO / NANDO.") y no letra suelta. No añade
+                  caracteres al texto ni cambia nada mientras la palabra quepa entera. */}
+              <span className="block dx-h2-accent">
+                funcio<wbr />nando.
               </span>
             </h2>
           </div>
@@ -45,7 +49,7 @@ export default function Diagnostic() {
           <span className="dx-direct-q">¿Prefieres escribir directo?</span>{' '}
           <a href={WHATSAPP_DEFAULT_URL} target="_blank" rel="noopener noreferrer" className="dx-direct-link">
             <IconWhatsApp size={18} />
-            <span>Habla por WhatsApp</span>
+            <span>Hablar por WhatsApp</span>
             <span className="sr-only"> (se abre WhatsApp)</span>
           </a>
         </p>

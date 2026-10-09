@@ -3,7 +3,7 @@
  *
  * Cuatro formas con EXACTAMENTE el mismo número de puntos, en coordenadas de píxel
  * del escenario (w × h), para poder interpolar punto a punto:
- *   0 ENERGÍA  → traza eléctrica en escalones (chaflanes a 45°) con una chispa en zigzag
+ *   0 ENERGÍA  → traza eléctrica en escalones (chaflanes a 45°) con un rayo en el centro
  *   1 AGUA     → tubería ondulada (se dibuja con doble línea)
  *   2 GAS      → flujo largo y suave con una válvula
  *   3 SOPORTE  → la línea del suelo se levanta y forma el contorno de una casa
@@ -40,7 +40,7 @@ export type ShapeSet = {
   pts: Float32Array[];
   /** Accesorios por sistema (trazos absolutos). */
   parts: Record<PartKey, string>;
-  /** Punta de la chispa eléctrica. */
+  /** Punta del rayo (lleva un punto de luz). */
   spark: Pt;
 };
 
@@ -151,6 +151,25 @@ const BLEED = 18;
 
 type Electric = { v: Pt[]; spark: Pt; vias: Pt[] };
 
+/**
+ * El rayo (⚡ tumbado), con los mismos chaflanes a 45° del resto de la traza:
+ * sube a 45°, cae en vertical cruzando la línea base, vuelve a subir a 45° en paralelo
+ * al primer trazo y baja en escalón a la base. `u` = altura del primer trazo.
+ */
+function bolt(x: number, y0: number, u: number): { v: Pt[]; tip: Pt } {
+  const tip: Pt = [x + u, y0 - u];
+  return {
+    tip,
+    v: [
+      [x, y0],
+      tip,
+      [x + u, y0 + u * 0.6],
+      [x + u * 2.1, y0 - u * 0.5],
+      [x + u * 2.1, y0],
+    ],
+  };
+}
+
 function electric(g: Geo): Electric {
   const { w, mid: y0, a, compact } = g;
   const X = (f: number) => f * w;
@@ -160,34 +179,26 @@ function electric(g: Geo): Electric {
   const d2 = lo - hi; // chaflán de banda completa
 
   if (compact) {
-    const zx = X(0.47);
-    const step = Math.max(9, w * 0.034);
-    const tip: Pt = [zx + step * 2, y0 - a * 1.0];
+    // Móvil: un solo escalón antes del rayo para darle aire (cabe desde 320px).
+    const b = bolt(X(0.4), y0, Math.min(a, w * 0.125));
     const v: Pt[] = [
       [-BLEED, y0],
       [X(0.05), y0],
       [X(0.05) + d1, lo],
-      [X(0.2), lo],
-      [X(0.2) + d2, hi],
-      [X(0.33), hi],
-      [X(0.33) + d1, y0],
-      [zx, y0],
-      [zx + step, y0 + a * 0.62],
-      tip,
-      [zx + step * 3, y0 + a * 0.5],
-      [zx + step * 4, y0],
-      [X(0.74), y0],
-      [X(0.74), hi],
-      [X(0.86), hi],
-      [X(0.86), y0],
+      [X(0.22), lo],
+      [X(0.22) + d1, y0],
+      ...b.v,
+      [X(0.76), y0],
+      [X(0.76), hi],
+      [X(0.88), hi],
+      [X(0.88), y0],
       [w + BLEED, y0],
     ];
-    return { v, spark: tip, vias: [[X(0.2), lo], [X(0.86), y0]] };
+    return { v, spark: b.tip, vias: [[X(0.22), lo], [X(0.88), y0]] };
   }
 
-  const zx = X(0.445);
-  const step = Math.max(14, w * 0.0165);
-  const tip: Pt = [zx + step * 3, y0 - a * 1.32];
+  // Arranca en 0,42: el aire antes y después del rayo queda parejo en todos los anchos.
+  const b = bolt(X(0.42), y0, Math.min(a, w * 0.068));
   const v: Pt[] = [
     [-BLEED, y0],
     [X(0.045), y0],
@@ -196,13 +207,7 @@ function electric(g: Geo): Electric {
     [X(0.16) + d2, hi],
     [X(0.3), hi],
     [X(0.3) + d1, y0],
-    [zx, y0],
-    [zx + step, y0 - a * 0.62],
-    [zx + step * 2, y0 + a * 0.74],
-    tip,
-    [zx + step * 4, y0 + a * 0.58],
-    [zx + step * 5, y0 - a * 0.3],
-    [zx + step * 6, y0],
+    ...b.v,
     [X(0.64), y0],
     [X(0.64), hi],
     [X(0.72), hi],
@@ -211,7 +216,7 @@ function electric(g: Geo): Electric {
     [X(0.83) + d1, y0],
     [w + BLEED, y0],
   ];
-  return { v, spark: tip, vias: [[X(0.16), lo], [X(0.72), hi], [X(0.83), lo]] };
+  return { v, spark: b.tip, vias: [[X(0.16), lo], [X(0.72), hi], [X(0.83), lo]] };
 }
 
 type Water = { v: Pt[]; joints: number[] };

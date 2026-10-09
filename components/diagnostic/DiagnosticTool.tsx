@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer, useRef, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useReducer, useRef, type MouseEvent } from 'react';
 import type { SystemId } from '@/lib/content';
 import { whatsappUrl } from '@/lib/whatsapp';
 import { useFinePointer, useInView } from '@/lib/hooks';
@@ -22,7 +22,15 @@ import { Console } from './Console';
 /* ------------------------------------------------------------------ */
 export type SendState = 'idle' | 'sending' | 'sent';
 export type CopyState = 'idle' | 'copied' | 'error';
-type FocusTarget = 'heading' | 'details' | 'summary' | 'success';
+/** Campo del paso 5 que se enfoca al llegar desde "Editar" de la ficha. */
+export type FieldHint = 'details' | 'name';
+type FocusTarget = 'heading' | 'details' | 'name' | 'summary' | 'success';
+
+/**
+ * Tiempo en que una vista recién pintada ignora clics de puntero: el segundo clic de un
+ * doble clic (o doble toque) caería sobre la vista nueva, que aparece bajo el mismo dedo.
+ */
+const SETTLE_MS = 400;
 
 export type DxState = {
   view: View;
@@ -42,7 +50,7 @@ type Action =
   | { type: 'service'; id: SystemId }
   | { type: 'pick'; key: PickKey; id: string }
   | { type: 'advance'; from: StepNo }
-  | { type: 'go'; view: View }
+  | { type: 'go'; view: View; field?: FieldHint }
   | { type: 'back' }
   | { type: 'restart' }
   | { type: 'details'; value: string }
@@ -94,8 +102,11 @@ function reducer(s: DxState, act: Action): DxState {
       // Un temporizador viejo no debe mover al usuario si ya cambió de paso.
       if (s.view !== act.from) return s;
       return moveTo(s, nextView(s.a, act.from));
-    case 'go':
-      return moveTo(s, act.view, { missing: [] });
+    case 'go': {
+      const next = moveTo(s, act.view, { missing: [] });
+      // "Editar" en Detalles o Nombre: el foco va directo al campo, no al título del paso.
+      return act.view === 5 && act.field ? { ...next, focus: { ...next.focus, target: act.field } } : next;
+    }
     case 'back':
       if (s.view === 1) return s;
       return moveTo(s, s.view === 'result' ? 5 : ((s.view - 1) as StepNo), { missing: [] });
@@ -121,7 +132,9 @@ function reducer(s: DxState, act: Action): DxState {
         ...s,
         detailsError: miss.includes(5),
         missing: others,
-        focus: { target: miss.includes(5) ? 'details' : 'summary', tick: s.focus.tick + 1 },
+        // Si faltan pasos anteriores, primero el resumen (enfoca su primer enlace); el error
+        // del campo se sigue mostrando. Solo cuando lo único pendiente es el texto, al campo.
+        focus: { target: others.length ? 'summary' : 'details', tick: s.focus.tick + 1 },
       };
     }
     case 'invalid':
@@ -157,14 +170,25 @@ function navHeight(): number {
  * móvil (barra de la consola fija) es el bloque de la pregunta, y abajo se deja aire
  * para el botón flotante.
  */
-function ensureVisible(action: HTMLElement | null, root: HTMLElement) {
+function visibleBand(root: HTMLElement) {
   const bar = root.querySelector<HTMLElement>('[data-dx-bar]');
   const sticky = !!bar && getComputedStyle(bar).position === 'sticky';
+  return {
+    sticky,
+    top: navHeight() + (sticky && bar ? bar.offsetHeight : 0) + 12,
+    bottom: window.innerHeight - (sticky ? 84 : 16),
+  };
+}
+
+function scrollByDy(dy: number) {
+  if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: reducedMotion() ? 'auto' : 'smooth' });
+}
+
+function ensureVisible(action: HTMLElement | null, root: HTMLElement) {
+  const { sticky, top, bottom } = visibleBand(root);
   const frame = root.querySelector<HTMLElement>('[data-dx-frame]');
   const anchor = (sticky ? root.querySelector<HTMLElement>('.dx-q') : null) ?? frame;
   if (!anchor) return;
-  const top = navHeight() + (sticky && bar ? bar.offsetHeight : 0) + 12;
-  const bottom = window.innerHeight - (sticky ? 84 : 16);
   const aTop = anchor.getBoundingClientRect().top;
   let dy = 0;
   if (aTop < top - 1) {
@@ -173,7 +197,20 @@ function ensureVisible(action: HTMLElement | null, root: HTMLElement) {
     const over = action.getBoundingClientRect().bottom - bottom;
     if (over > 0) dy = Math.min(over, aTop - top);
   }
-  if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  scrollByDy(dy);
+}
+
+/**
+ * Para errores, campos y el aviso de éxito: que el bloque `el` quede entero a la vista
+ * (aunque el inicio del panel suba bajo el navbar). Si es más alto que la ventana, manda su inicio.
+ */
+function revealBlock(el: HTMLElement, root: HTMLElement) {
+  const { top, bottom } = visibleBand(root);
+  const r = el.getBoundingClientRect();
+  let dy = 0;
+  if (r.top < top - 1) dy = r.top - top;
+  else if (r.bottom > bottom + 1) dy = Math.min(r.bottom - bottom, r.top - top);
+  scrollByDy(dy);
 }
 
 function legacyCopy(text: string): boolean {
@@ -215,6 +252,7 @@ export default function DiagnosticTool() {
     const sel: Record<FocusTarget, string> = {
       heading: '[data-dx-heading]',
       details: '#dx-details',
+      name: '#dx-name',
       summary: '[data-dx-summary] button',
       success: '[data-dx-success]',
     };
@@ -222,16 +260,61 @@ export default function DiagnosticTool() {
     el?.focus({ preventScroll: true });
     if (section) {
       root.closest('section')?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
-    } else if (el) {
-      // Paso nuevo: que quepa la pregunta completa (o el CTA del resultado). Errores y éxito: ese bloque.
+    } else if (el && target === 'heading') {
+      // Paso nuevo: que quepa la pregunta completa (o el CTA del resultado).
       const action =
-        target === 'heading'
-          ? (root.querySelector<HTMLElement>('.dx-q .dx-cta, .dx-q .dx-opts, .dx-q .dx-submit') ??
-            root.querySelector<HTMLElement>('[data-dx-frame]'))
-          : el;
+        root.querySelector<HTMLElement>('.dx-q .dx-cta, .dx-q .dx-opts, .dx-q .dx-submit') ??
+        root.querySelector<HTMLElement>('[data-dx-frame]');
       ensureVisible(action, root);
+    } else if (el) {
+      // Resumen de error, campo a editar o aviso de éxito: ese bloque completo a la vista.
+      const block =
+        target === 'summary'
+          ? el.closest<HTMLElement>('[data-dx-summary]')
+          : target === 'details' || target === 'name'
+            ? el.closest<HTMLElement>('.dx-field')
+            : el;
+      revealBlock(block ?? el, root);
     }
   }, [s.focus]);
+
+  // Marca de tiempo de cada vista nueva (antes de pintar): base de la guarda de doble clic.
+  // (La primera vista, al hidratar, no cuenta: no reemplazó nada bajo el puntero.)
+  const viewAt = useRef(0);
+  const viewKey = `${s.view}|${s.send === 'sent' ? 'sent' : ''}`;
+  const lastViewKey = useRef(viewKey);
+  useLayoutEffect(() => {
+    if (lastViewKey.current === viewKey) return;
+    lastViewKey.current = viewKey;
+    viewAt.current = performance.now();
+  }, [viewKey]);
+
+  /**
+   * Guarda de doble clic / doble toque (fase de captura, en toda la herramienta): durante
+   * SETTLE_MS tras pintar una vista nueva se ignoran los clics de puntero sobre botones y
+   * enlaces. `detail === 0` es teclado o tecnología de apoyo: esos clics siempre pasan.
+   */
+  const settling = () => performance.now() - viewAt.current < SETTLE_MS;
+  const onClickCapture = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.detail === 0 || !settling()) return;
+    const t = e.target as Element | null;
+    // label: su clic movería el foco a su campo.
+    if (!t?.closest('button, a, label')) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  // El mousedown de ese segundo clic tampoco debe mover el foco que acabamos de poner (p. ej.
+  // en el campo al que llevó "Editar detalles"), caiga donde caiga tras el desplazamiento.
+  // Solo evita el cambio de foco y el inicio de selección; el clic sigue su curso.
+  useEffect(() => {
+    const onDown = (e: globalThis.MouseEvent) => {
+      if (performance.now() - viewAt.current >= SETTLE_MS) return;
+      if (!rootRef.current?.contains(document.activeElement)) return;
+      e.preventDefault();
+    };
+    document.addEventListener('mousedown', onDown, true);
+    return () => document.removeEventListener('mousedown', onDown, true);
+  }, []);
 
   // <html data-dx-console="1"> mientras la consola está abierta y en pantalla: el botón
   // flotante de WhatsApp puede ocultarse (la consola ya termina en WhatsApp).
@@ -267,9 +350,9 @@ export default function DiagnosticTool() {
     advanceTimer.current = window.setTimeout(() => dispatch({ type: 'advance', from }), reducedMotion() ? 60 : 180);
   };
 
-  const go = (view: View) => {
+  const go = (view: View, field?: FieldHint) => {
     window.clearTimeout(advanceTimer.current);
-    dispatch({ type: 'go', view });
+    dispatch({ type: 'go', view, field });
   };
 
   const back = () => {
@@ -284,6 +367,11 @@ export default function DiagnosticTool() {
   };
 
   const onCta = (e: MouseEvent<HTMLAnchorElement>) => {
+    // Ya se está abriendo: un segundo clic no abre otra pestaña de WhatsApp.
+    if (s.send !== 'idle') {
+      e.preventDefault();
+      return;
+    }
     const miss = missingSteps(s.a);
     if (miss.length) {
       e.preventDefault();
@@ -333,6 +421,7 @@ export default function DiagnosticTool() {
       data-paused={inView ? 'false' : 'true'}
       data-fine={fine ? 'true' : 'false'}
       data-view={s.view}
+      onClickCapture={onClickCapture}
     >
       {s.view === 1 ? (
         <ServiceSelector a={s.a} onPick={pickService} onRestart={restart} animate={s.focus.tick > 0} />

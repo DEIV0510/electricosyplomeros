@@ -4,23 +4,32 @@ import { BackSvg, HouseSvg, LABELS, LabelsLayer, SystemsSvg } from '@/components
 /**
  * HomeSystem: la casa como un sistema conectado (DESIGN.md §7.4).
  * El dibujo es marcado de servidor; solo el escenario (`HomeSystemStage`) es cliente.
+ * Cabecera de instrumento: paso "01 · DETECTAR" a la izquierda y la lectura de estado
+ * a la derecha (decorativas: el escenario ya tiene su descripción accesible).
  */
 export default function HomeSystem() {
   return (
     <div className="hs">
-      <p className="hs-readout t-label" aria-hidden="true">
-        <span className="hs-read-k">Estado:</span>
-        <span className="hs-read-v">
-          <span className="hs-read-detect">
-            <i className="hs-dot hs-dot-alert" />
-            Detectando…
+      <div className="hs-head" aria-hidden="true">
+        <p className="hs-step t-label">
+          <span className="hs-step-i">01</span>
+          <span className="hs-step-sep">·</span>
+          <span>Detectar</span>
+        </p>
+        <p className="hs-readout t-label">
+          <span className="hs-read-k">Estado:</span>
+          <span className="hs-read-v">
+            <span className="hs-read-detect">
+              <i className="hs-dot hs-dot-alert" />
+              Detectando…
+            </span>
+            <span className="hs-read-ok">
+              <i className="hs-dot hs-dot-ok" />
+              Sistema listo
+            </span>
           </span>
-          <span className="hs-read-ok">
-            <i className="hs-dot hs-dot-ok" />
-            Sistema listo
-          </span>
-        </span>
-      </p>
+        </p>
+      </div>
 
       <HomeSystemStage label="Esquema de una casa con sus sistemas de electricidad, agua, gas y hogar conectados">
         <div className="hs-layer hs-l-back" data-depth="-10">

@@ -8,23 +8,30 @@ import Logo from '@/components/ui/Logo';
  * muestra (html.is-booting), cuándo sale (html.boot-done) y cuándo se retira (boot-end).
  * Sin JS nunca aparece. Todo es decorativo: el contenedor va con aria-hidden.
  *
- * Línea de tiempo (ms desde el primer pintado), pensada para terminar antes de boot-done:
+ * Línea de tiempo (ms desde el primer pintado). boot-done llega 950 ms después del primer
+ * fotograma (lib/boot.ts), así que "● SISTEMA LISTO" queda ~500 ms en pantalla antes de salir:
  *   0     logo, circuito apagado y "SOLUCIONES EFICIENTES" ya visibles
- *   50    el pulso sale de la fuente y recorre el circuito (480 ms)
- *   ~140  ELECTRICIDAD · ~250 AGUA · ~370 GAS · ~480 HOGAR se encienden al paso
- *   500   el trazo cierra en un rombo de franjas (eco del logo)
- *   600   "SOLUCIONES EFICIENTES" cede el paso a "● SISTEMA LISTO"
+ *   30    el pulso sale de la fuente y recorre el circuito (320 ms)
+ *   ~90   ELECTRICIDAD · ~165 AGUA · ~245 GAS · ~320 HOGAR se encienden al paso
+ *   330   el trazo cierra en un rombo de franjas (eco del logo)
+ *   380   "SOLUCIONES EFICIENTES" cede el paso a "● SISTEMA LISTO" (entra a los 420)
+ *   950   boot-done: el panel sube
  * Si boot-done llega antes, todo salta al estado final mientras el panel sube.
+ *
+ * El logo NO lleva `priority`: con loading="lazy" no se descarga cuando la pantalla de
+ * carga no se muestra (display:none). Cuando sí se muestra, lib/boot.ts inyecta un
+ * <link rel="preload"> con los mismos srcset/sizes para que esté desde el primer fotograma.
  */
 
 type Node = { id: string; label: string; x: number; delay: number; color: string; side: 'top' | 'bottom' };
 
-// x = posición en el ancho del circuito; delay = momento en que el pulso pasa por el nodo.
+// x = posición en el ancho del circuito; delay = momento en que el pulso pasa por el nodo
+// (30 ms de salida + 320 ms de recorrido × fracción de la pista hasta el nodo).
 const NODES: Node[] = [
-  { id: 'electricidad', label: 'Electricidad', x: 17, delay: 138, color: 'var(--color-electric)', side: 'bottom' },
-  { id: 'agua', label: 'Agua', x: 39, delay: 253, color: 'var(--color-water)', side: 'top' },
-  { id: 'gas', label: 'Gas', x: 61, delay: 368, color: 'var(--color-gas)', side: 'bottom' },
-  { id: 'hogar', label: 'Hogar', x: 83, delay: 482, color: 'var(--color-violet)', side: 'top' },
+  { id: 'electricidad', label: 'Electricidad', x: 17, delay: 90, color: 'var(--color-electric)', side: 'bottom' },
+  { id: 'agua', label: 'Agua', x: 39, delay: 166, color: 'var(--color-water)', side: 'top' },
+  { id: 'gas', label: 'Gas', x: 61, delay: 243, color: 'var(--color-gas)', side: 'bottom' },
+  { id: 'hogar', label: 'Hogar', x: 83, delay: 320, color: 'var(--color-violet)', side: 'top' },
 ];
 
 // Franjas del rombo final (centro de cada franja dentro de un rombo de 36×36).
@@ -36,7 +43,8 @@ export default function LoadingScreen() {
       <div className="boot-panel">
         <div className="boot-grid" />
         <div className="boot-stage">
-          <Logo priority className="boot-logo" sizes="(min-width: 540px) 420px, 78vw" alt="" />
+          {/* sizes debe coincidir con el preload de lib/boot.ts */}
+          <Logo className="boot-logo" sizes="(min-width: 540px) 420px, 78vw" alt="" />
 
           <div className="boot-circuit">
             <span className="boot-track">
