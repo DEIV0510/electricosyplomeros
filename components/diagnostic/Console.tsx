@@ -164,9 +164,12 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
               const v = valueText(s.a, step);
               const current = s.view === step;
               // Nombre accesible limpio: "Lugar: pendiente. Ir a este paso" (sin leer la raya).
-              const cut = v && v.length > 60 ? `${v.slice(0, 57).trimEnd()}…` : v;
-              // Sin puntuación final: evita "…baño.. Cambiar".
-              const spoken = cut?.replace(/[.!?¡¿…,;:]+$/u, '');
+              // Detalles largos: se recortan en palabra completa (con …) igual en lo visible y en
+              // el nombre accesible, así coinciden (WCAG 2.5.3). El texto entero sigue en su campo.
+              const shown = step === 5 && v && v.length > 60 ? `${v.slice(0, 57).replace(/\s+\S*$/u, '')}…` : v;
+              // Sin punto final duplicado ("…baño.. Cambiar"); ? ! … se conservan.
+              const said = shown?.replace(/[.,;:]+$/u, '');
+              const sep = said && /[?!…]$/u.test(said) ? ' ' : '. ';
               return (
                 <li key={step}>
                   <button
@@ -174,12 +177,12 @@ function Readout({ s, message, onGo, onToggleReadout, sysLabel }: ConsoleProps &
                     className="dx-row"
                     data-done={v ? 'true' : 'false'}
                     aria-current={current ? 'step' : undefined}
-                    aria-label={`${STEP_META[step].label}: ${spoken ?? 'pendiente'}. ${v ? 'Cambiar' : 'Ir a este paso'}`}
+                    aria-label={`${STEP_META[step].label}: ${said ?? 'pendiente'}${sep}${v ? 'Cambiar' : 'Ir a este paso'}`}
                     onClick={() => onGo(step)}
                     data-row={step}
                   >
                     <span className="t-label dx-row-k">{STEP_META[step].label}</span>{' '}
-                    <span className="dx-row-v">{v ?? <span aria-hidden="true">—</span>}</span>
+                    <span className="dx-row-v">{shown ?? <span aria-hidden="true">—</span>}</span>
                     <span className="dx-row-s" aria-hidden="true">
                       {v ? <IconCheck size={16} strokeWidth={2.25} /> : null}
                     </span>

@@ -102,9 +102,12 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
       if (mqFine.matches) window.clearTimeout(restTimer);
     };
 
-    // Tocar el dibujo lo despierta (táctil): una pasada más.
-    const onDown = (e: PointerEvent) => {
-      if (e.pointerType === 'touch') restartRef.current();
+    // Tocar el dibujo lo despierta (táctil): UNA pasada más, sin rearmar las automáticas.
+    // 'click' solo llega con toques, no al empezar a deslizar para hacer scroll.
+    const onTap = () => {
+      if (mqFine.matches) return;
+      window.clearTimeout(restTimer);
+      start();
     };
 
     restartRef.current = () => {
@@ -115,9 +118,9 @@ export default function HomeSystemStage({ label, children }: { label: string; ch
     root.addEventListener('animationend', onEnd);
     root.addEventListener('pointerenter', onEnter);
     root.addEventListener('pointerleave', onLeave);
-    root.addEventListener('pointerdown', onDown);
+    root.addEventListener('click', onTap);
     return () => {
-      root.removeEventListener('pointerdown', onDown);
+      root.removeEventListener('click', onTap);
       root.removeEventListener('animationend', onEnd);
       root.removeEventListener('pointerenter', onEnter);
       root.removeEventListener('pointerleave', onLeave);

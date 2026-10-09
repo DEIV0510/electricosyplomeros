@@ -874,7 +874,8 @@
   .ct-actions .ct-diag:hover {
     color: var(--color-mist);
   }
-  @media (min-width: 640px) {
+  /* Desde 720px (no 640): la celda de redes necesita rótulo + tres íconos de 46px. */
+  @media (min-width: 720px) {
     /* Dos filas compartidas (subgrid): los rótulos de las dos celdas quedan en la misma
        línea y los valores centrados entre sí, aunque el teléfono sea más alto que
        la celda de redes. Sin subgrid, cada fila igual llena su celda. */
