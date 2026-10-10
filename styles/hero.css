@@ -832,7 +832,7 @@
     flex: none;
   }
   .hs-dot-alert {
-    background: var(--color-gas);
+    background: var(--color-alert);
   }
   .hs-dot-ok {
     background: var(--color-green);
@@ -1004,7 +1004,7 @@
 
   /* ---------------- Sistemas ---------------- */
   .hs-e {
-    --c: var(--color-electric);
+    --c: var(--color-power);
   }
   .hs-w {
     --c: var(--color-water);
@@ -1042,8 +1042,8 @@
   /* Energía */
   .hs-wire {
     fill: none;
-    stroke: var(--color-electric);
-    stroke-opacity: 0.72;
+    stroke: var(--color-power);
+    stroke-opacity: 1;
     stroke-width: 1.75;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -1056,13 +1056,13 @@
     visibility: hidden;
   }
   .hs-pulse {
-    stroke: var(--color-electric);
+    stroke: var(--color-power);
     stroke-width: 3;
     stroke-dasharray: 34 1200;
     stroke-dashoffset: 50;
   }
   .hs-pulse-glow {
-    stroke: var(--color-electric-glow);
+    stroke: var(--color-power-glow);
     stroke-opacity: 0.45;
     stroke-width: 9;
     stroke-dasharray: 34 1200;
@@ -1076,24 +1076,24 @@
   .hs-outlet rect,
   .hs-lamp-bg {
     fill: var(--color-paper);
-    stroke: var(--color-electric);
+    stroke: var(--color-power);
     stroke-width: 1.5;
   }
   .hs-panel path,
   .hs-outlet path,
   .hs-lamp path {
     fill: none;
-    stroke: var(--color-electric);
+    stroke: var(--color-power);
     stroke-width: 1.25;
     stroke-linecap: round;
   }
   .hs-lamp-glow {
-    fill: var(--color-electric-glow);
+    fill: var(--color-power-glow);
     opacity: 0;
   }
   .hs-lamp-ring {
     fill: none;
-    stroke: var(--color-electric);
+    stroke: var(--color-power);
     stroke-width: 1.5;
   }
 
@@ -1174,7 +1174,7 @@
     stroke: var(--color-green);
   }
   .hs-ring-alert path {
-    stroke: var(--color-gas);
+    stroke: var(--color-alert);
   }
   .hs-ring-alert {
     opacity: 0;
@@ -1197,7 +1197,7 @@
       opacity 0.25s var(--ease-out);
   }
   .hs-node[data-node="electricidad"] {
-    --c: var(--color-electric);
+    --c: var(--color-power);
   }
   .hs-node[data-node="plomeria"] {
     --c: var(--color-water);
@@ -1244,7 +1244,7 @@
   .hs-leader[data-sys="electricidad"],
   .hs-label[data-sys="electricidad"],
   .hs-legend [data-sys="electricidad"] {
-    --c: var(--color-electric);
+    --c: var(--color-power);
   }
   .hs-leader[data-sys="plomeria"],
   .hs-label[data-sys="plomeria"],
@@ -1352,7 +1352,7 @@
   .hs-sw[data-sys="plomeria"] {
     background:
       linear-gradient(var(--c), var(--c)) center / 100% 1.5px no-repeat,
-      linear-gradient(rgb(11 134 196 / 0.24), rgb(11 134 196 / 0.24)) center / 100% 6px no-repeat;
+      linear-gradient(rgb(10 138 168 / 0.24), rgb(10 138 168 / 0.24)) center / 100% 6px no-repeat;
   }
   .hs-sw[data-sys="gas"] {
     background: repeating-linear-gradient(to right, var(--c) 0 3px, transparent 3px 6px) center / 100% 1.5px no-repeat;

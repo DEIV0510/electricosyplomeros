@@ -25,13 +25,18 @@
   --color-violet: #3a0080;
   --color-violet-2: #5520a8;
   --color-electric: #4b2ef5;
+  /* Electricidad (sistema): amarillo dorado */
+  --color-power: #b07e00;
   /* Verde del logo: acciones, WhatsApp, estado "listo" */
   --color-green: #00c000;
   --color-green-2: #00ad00;
   --color-green-ink: #006e14;
   /* Sistemas (solo trazos y acentos pequeños, nunca grandes rellenos) */
-  --color-water: #0b86c4;
-  --color-gas: #e0691f;
+  --color-water: #0a8aa8;
+  /* Gas: azul de la llama */
+  --color-gas: #2563eb;
+  /* Alerta / anomalía (avisos de error, "detectando"): ámbar. No es un sistema. */
+  --color-alert: #e0691f;
   /* Superficie oscura (tablero) */
   --color-night: #0d0918;
   --color-night-2: #151026;
@@ -40,8 +45,10 @@
   --color-mist-2: #b9b2cf;
   --color-mist-3: #8a83a3;
   --color-electric-glow: #9d8cff;
-  --color-water-glow: #4cc3f5;
-  --color-gas-glow: #ff9a57;
+  --color-power-glow: #ffc53d;
+  --color-water-glow: #2dd4e6;
+  --color-gas-glow: #6e9bff;
+  --color-alert-glow: #ff9a57;
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;

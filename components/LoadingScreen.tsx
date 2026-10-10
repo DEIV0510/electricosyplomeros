@@ -28,7 +28,7 @@ type Node = { id: string; label: string; x: number; delay: number; color: string
 // x = posición en el ancho del circuito; delay = momento en que el pulso pasa por el nodo
 // (30 ms de salida + 320 ms de recorrido × fracción de la pista hasta el nodo).
 const NODES: Node[] = [
-  { id: 'electricidad', label: 'Electricidad', x: 17, delay: 90, color: 'var(--color-electric)', side: 'bottom' },
+  { id: 'electricidad', label: 'Electricidad', x: 17, delay: 90, color: 'var(--color-power)', side: 'bottom' },
   { id: 'agua', label: 'Agua', x: 39, delay: 166, color: 'var(--color-water)', side: 'top' },
   { id: 'gas', label: 'Gas', x: 61, delay: 243, color: 'var(--color-gas)', side: 'bottom' },
   { id: 'hogar', label: 'Hogar', x: 83, delay: 320, color: 'var(--color-violet)', side: 'top' },

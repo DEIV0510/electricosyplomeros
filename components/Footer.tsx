@@ -13,7 +13,7 @@ import { WHATSAPP_DEFAULT_URL } from '@/lib/whatsapp';
 
 // Color de cada sistema (mismo código de color que el resto del sitio).
 const SYSTEM_COLOR: Record<string, string> = {
-  electricidad: 'var(--color-electric)',
+  electricidad: 'var(--color-power)',
   plomeria: 'var(--color-water)',
   gas: 'var(--color-gas)',
   hogar: 'var(--color-violet)',

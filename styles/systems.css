@@ -95,7 +95,7 @@
   /*  Color por sistema                                                */
   /* ---------------------------------------------------------------- */
   .sys-board {
-    --sys-glow: var(--color-electric-glow);
+    --sys-glow: var(--color-power-glow);
     position: relative;
   }
   .sys-board[data-sys="plomeria"] {
@@ -110,8 +110,8 @@
   }
   .sys-col[data-sys="electricidad"],
   .sys-tag-item[data-sys="electricidad"] {
-    --col-ink: var(--color-electric);
-    --col-glow: var(--color-electric-glow);
+    --col-ink: var(--color-power);
+    --col-glow: var(--color-power-glow);
   }
   .sys-col[data-sys="plomeria"],
   .sys-tag-item[data-sys="plomeria"] {
@@ -305,7 +305,7 @@
   }
   .sys-e-vias {
     fill: var(--color-night);
-    stroke: var(--color-electric-glow);
+    stroke: var(--color-power-glow);
     stroke-width: 1.5;
   }
   .sys-spark-core {

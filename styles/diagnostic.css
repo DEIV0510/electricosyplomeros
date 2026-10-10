@@ -277,8 +277,8 @@
   /* Colores por sistema (claro / sobre night). SOPORTE (hogar) nunca usa verde:
      el verde es solo para acciones y el estado listo (DESIGN §2). */
   .dx-root [data-sys="electricidad"] {
-    --dx-c: var(--color-electric);
-    --dx-glow: var(--color-electric-glow);
+    --dx-c: var(--color-power);
+    --dx-glow: var(--color-power-glow);
   }
   .dx-root [data-sys="plomeria"] {
     --dx-c: var(--color-water);
@@ -1502,7 +1502,7 @@
     border-color: var(--color-electric-glow);
   }
   .dx-input[aria-invalid="true"] {
-    border-color: var(--color-gas-glow);
+    border-color: var(--color-alert-glow);
   }
   .dx-textarea {
     min-height: 132px;
@@ -1524,7 +1524,7 @@
     font-size: 0.9375rem;
     font-weight: 550;
     line-height: 1.35;
-    color: var(--color-gas-glow);
+    color: var(--color-alert-glow);
   }
   .dx-err svg {
     flex: none;
@@ -1564,16 +1564,16 @@
     margin-top: 16px;
     padding: 14px 16px;
     color: var(--color-mist);
-    background: rgb(255 154 87 / 0.07);
-    border: 1px solid rgb(255 154 87 / 0.45);
-    border-left: 3px solid var(--color-gas-glow);
+    background: color-mix(in srgb, var(--color-alert-glow) 7%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-alert-glow) 45%, transparent);
+    border-left: 3px solid var(--color-alert-glow);
   }
   .dx-alert-t {
     display: flex;
     align-items: center;
     gap: 8px;
     font-weight: 600;
-    color: var(--color-gas-glow);
+    color: var(--color-alert-glow);
   }
   .dx-alert-list {
     display: flex;
@@ -1861,7 +1861,7 @@
     color: var(--color-green);
   }
   .dx-copy-status.is-error {
-    color: var(--color-gas-glow);
+    color: var(--color-alert-glow);
   }
   .dx-copy-status svg {
     flex: none;

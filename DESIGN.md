@@ -47,21 +47,23 @@ El logo tiene tres piezas que guían todo el lenguaje visual:
 | `ink` / `ink-2` / `ink-3` | #14101f / #3f3a4d / #655e78 | texto (todos ≥4.5:1 sobre paper) |
 | `violet` | #3a0080 | morado del logo: títulos acentuados, nodos, líneas de marca |
 | `violet-2` | #5520a8 | hover morado |
-| `electric` | #4b2ef5 | azul eléctrico: sistema ENERGÍA, foco de teclado |
-| `water` | #0b86c4 | sistema AGUA (solo trazos) |
-| `gas` | #e0691f | sistema GAS (solo trazos finos, sutil) |
+| `electric` | #4b2ef5 | azul eléctrico de INTERFAZ: foco de teclado, cursor, barridos, riel (ya no es el color del sistema eléctrico) |
+| `power` | #b07e00 | **sistema ENERGÍA: amarillo dorado** (pedido del cliente, 2026-10-10). Solo trazos e íconos sobre claro (3,3:1); nunca texto pequeño |
+| `water` | #0a8aa8 | sistema AGUA: turquesa (se separa del azul del gas) — solo trazos |
+| `gas` | #2563eb | **sistema GAS: azul de la llama** (pedido del cliente: «la llama no es naranjada») — trazos finos |
+| `alert` / `alert-glow` | #e0691f / #ff9a57 | ámbar SOLO para avisos de error y la anomalía «DETECTANDO…»; no es un sistema |
 | `green` / `green-2` | #00c000 / #00ad00 | verde del logo: CTAs (texto `ink` encima), WhatsApp, estado LISTO |
 | `green-ink` | #006e14 | verde para TEXTO sobre fondo claro |
 | `night` / `night-2` / `night-3` | #0d0918 / #151026 / #211a38 | superficies oscuras (tablero) |
 | `mist` / `mist-2` / `mist-3` | #f3f1f8 / #b9b2cf / #8a83a3 | texto sobre night (todos ≥4.5:1) |
-| `electric-glow` / `water-glow` / `gas-glow` | #9d8cff / #4cc3f5 / #ff9a57 | trazos de sistemas sobre night |
+| `power-glow` / `water-glow` / `gas-glow` | #ffc53d / #2dd4e6 / #6e9bff | trazos de sistemas sobre night (`electric-glow` #9d8cff queda para interfaz sobre night) |
 
 Reglas de color:
 - **El verde es exclusivo de acciones (CTA/WhatsApp) y del estado LISTO/RESUELTO** (anillo de encendido, SOLUCIONAMOS., HABLEMOS.). No es el color de ningún sistema: SOPORTE usa violet sobre claro y mist sobre night.
 - **Acentos de titular:** sobre paper, el acento es violet (palabra clave o segunda línea). Sobre night, verde solo para la palabra "resuelta". Nada de naranja/gas en titulares.
 - El verde es para acciones y estado "listo". No pintar secciones enteras de verde. Texto blanco sobre verde está PROHIBIDO (contraste 2.5:1): sobre verde siempre `ink`.
 - Verde como texto sobre paper: solo `green-ink`. Sobre night, `green` sí sirve como texto (7.9:1).
-- Gas es un acento cálido muy sutil (líneas de 1–1.5px, opacidad ~0.8). Nunca fondos naranjas.
+- Gas es un acento azul (llama) sutil: líneas de 1–1.5px. Nunca fondos azules llenos.
 - Nada de degradados grandes ni glassmorphism. Como máximo un halo radial suave detrás de un nodo.
 - Apagar elementos por **color** (p. ej. `mist-3`), no por `opacity` baja, cuando son texto.
 
@@ -69,7 +71,7 @@ Sistemas → color → ícono:
 
 | id | Sistema | Servicio | Color claro | Color en night | Ícono |
 |---|---|---|---|---|---|
-| electricidad | 01 ENERGÍA | Electricidad | electric | electric-glow | IconBolt |
+| electricidad | 01 ENERGÍA | Electricidad | power (dorado) | power-glow | IconBolt |
 | plomeria | 02 AGUA | Plomería | water | water-glow | IconDrop |
 | gas | 03 GAS | Gas | gas | gas-glow | IconFlame |
 | hogar | 04 SOPORTE | Asistencia para el hogar | violet | mist (blanco) — NUNCA verde | IconHome |
