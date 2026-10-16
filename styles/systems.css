@@ -218,11 +218,12 @@
   .sys-board[data-sys="plomeria"] .sys-l-glow {
     opacity: 0;
   }
+  /* Gas: tubería pintada amarillo Caterpillar (gruesa y sólida), sin el brillo del cable */
   .sys-board[data-sys="gas"] .sys-l-core {
-    opacity: 0.4;
+    stroke-width: 6;
   }
   .sys-board[data-sys="gas"] .sys-l-glow {
-    opacity: 0.06;
+    opacity: 0.05;
   }
   .sys-board[data-sys="hogar"] .sys-l-glow {
     opacity: 0.1;
@@ -247,8 +248,8 @@
     stroke-dasharray: 7 11;
   }
   .sys-flow[data-flow="gas"] {
-    stroke: var(--color-gas-glow);
-    stroke-width: 1.75;
+    stroke: var(--color-gas-edge);
+    stroke-width: 2;
     stroke-dasharray: 10 14;
   }
   .sys-flow[data-flow="hogar"] {

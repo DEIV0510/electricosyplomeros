@@ -34,7 +34,10 @@
   /* Sistemas (solo trazos y acentos pequeños, nunca grandes rellenos) */
   --color-water: #0a8aa8;
   /* Gas: azul de la llama */
-  --color-gas: #2563eb;
+  /* Gas: tuberías amarillo Caterpillar con borde ocre (como en la realidad) */
+  --color-gas: #d4a000;
+  --color-gas-pipe: #ffcd11;
+  --color-gas-edge: #9a7400;
   /* Alerta / anomalía (avisos de error, "detectando"): ámbar. No es un sistema. */
   --color-alert: #e0691f;
   /* Superficie oscura (tablero) */
@@ -47,7 +50,7 @@
   --color-electric-glow: #9d8cff;
   --color-power-glow: #ffc53d;
   --color-water-glow: #2dd4e6;
-  --color-gas-glow: #6e9bff;
+  --color-gas-glow: #ffcd11;
   --color-alert-glow: #ff9a57;
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;

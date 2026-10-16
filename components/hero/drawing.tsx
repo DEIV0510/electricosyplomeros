@@ -261,6 +261,11 @@ export function SystemsSvg() {
         {/* ---------------- 03 GAS ---------------- */}
         <g className="hs-sys hs-g" data-sys="gas">
           <path className="hs-hit" d={`${G.supply}${G.service}M488 440h24`} />
+          {/* Tubería pintada: borde ocre + tubo amarillo Caterpillar; encima, el flujo */}
+          <path className="hs-gas-edge" d={G.supply} />
+          <path className="hs-gas-edge" d={G.service} />
+          <path className="hs-gas-tube" d={G.supply} />
+          <path className="hs-gas-tube" d={G.service} />
           <path className="hs-gas anim-loop" d={G.supply} />
           <path className="hs-gas anim-loop" d={G.service} />
           <rect className="hs-meter" x="488" y="424" width="24" height="32" />

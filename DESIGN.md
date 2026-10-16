@@ -50,7 +50,7 @@ El logo tiene tres piezas que guían todo el lenguaje visual:
 | `electric` | #4b2ef5 | azul eléctrico de INTERFAZ: foco de teclado, cursor, barridos, riel (ya no es el color del sistema eléctrico) |
 | `power` | #b07e00 | **sistema ENERGÍA: amarillo dorado** (pedido del cliente, 2026-10-10). Solo trazos e íconos sobre claro (3,3:1); nunca texto pequeño |
 | `water` | #0a8aa8 | sistema AGUA: turquesa (se separa del azul del gas) — solo trazos |
-| `gas` | #2563eb | **sistema GAS: azul de la llama** (pedido del cliente: «la llama no es naranjada») — trazos finos |
+| `gas` / `gas-pipe` / `gas-edge` | #d4a000 / #ffcd11 / #9a7400 | **sistema GAS: tubería pintada amarillo Caterpillar con borde ocre** (pedido del cliente 2026-10-16: «la tubería del gas es amarillo ocre o amarillo Caterpillar»). Se dibuja como TUBO grueso; la electricidad es CABLE dorado fino |
 | `alert` / `alert-glow` | #e0691f / #ff9a57 | ámbar SOLO para avisos de error y la anomalía «DETECTANDO…»; no es un sistema |
 | `green` / `green-2` | #00c000 / #00ad00 | verde del logo: CTAs (texto `ink` encima), WhatsApp, estado LISTO |
 | `green-ink` | #006e14 | verde para TEXTO sobre fondo claro |
@@ -63,7 +63,7 @@ Reglas de color:
 - **Acentos de titular:** sobre paper, el acento es violet (palabra clave o segunda línea). Sobre night, verde solo para la palabra "resuelta". Nada de naranja/gas en titulares.
 - El verde es para acciones y estado "listo". No pintar secciones enteras de verde. Texto blanco sobre verde está PROHIBIDO (contraste 2.5:1): sobre verde siempre `ink`.
 - Verde como texto sobre paper: solo `green-ink`. Sobre night, `green` sí sirve como texto (7.9:1).
-- Gas es un acento azul (llama) sutil: líneas de 1–1.5px. Nunca fondos azules llenos.
+- Gas = tubería amarilla (tubo grueso amarillo Caterpillar con borde ocre y flujo punteado encima); nunca un hilo fino, para no confundirse con el cable dorado de la electricidad.
 - **Las llamas (estufa de la casita e íconos de gas) llevan colores de FUEGO REAL** (pedido del cliente, 2026-10-16): núcleo blanco-amarillo #fff7d6→#ffd23f, cuerpo naranja #ffa12b→#ff6a1a y punta roja #db2f1a. Las tuberías, el medidor y los trazos del gas siguen en azul.
 - Nada de degradados grandes ni glassmorphism. Como máximo un halo radial suave detrás de un nodo.
 - Apagar elementos por **color** (p. ej. `mist-3`), no por `opacity` baja, cuando son texto.
