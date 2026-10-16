@@ -64,6 +64,7 @@ Reglas de color:
 - El verde es para acciones y estado "listo". No pintar secciones enteras de verde. Texto blanco sobre verde está PROHIBIDO (contraste 2.5:1): sobre verde siempre `ink`.
 - Verde como texto sobre paper: solo `green-ink`. Sobre night, `green` sí sirve como texto (7.9:1).
 - Gas es un acento azul (llama) sutil: líneas de 1–1.5px. Nunca fondos azules llenos.
+- **Las llamas (estufa de la casita e íconos de gas) llevan colores de FUEGO REAL** (pedido del cliente, 2026-10-16): núcleo blanco-amarillo #fff7d6→#ffd23f, cuerpo naranja #ffa12b→#ff6a1a y punta roja #db2f1a. Las tuberías, el medidor y los trazos del gas siguen en azul.
 - Nada de degradados grandes ni glassmorphism. Como máximo un halo radial suave detrás de un nodo.
 - Apagar elementos por **color** (p. ej. `mist-3`), no por `opacity` baja, cuando son texto.
 

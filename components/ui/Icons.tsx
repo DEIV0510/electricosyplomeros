@@ -40,16 +40,30 @@ export const IconDrop = (p: IconProps) => (
   </Base>
 );
 
-/** Llama de gas real: cuerpo azul relleno (currentColor) y núcleo celeste brillante. */
-export const IconFlame = (p: IconProps) => (
+/**
+ * Llama con colores de fuego real: cuerpo naranja → rojo y núcleo blanco-amarillo.
+ * `fireId` debe ser único en la página si el ícono se repite (ids de los degradados).
+ */
+export const IconFlame = ({ fireId = 'ep-fire', ...p }: IconProps & { fireId?: string }) => (
   <Base {...p}>
+    <defs>
+      <linearGradient id={`${fireId}-o`} x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stopColor="#ffa12b" />
+        <stop offset="0.5" stopColor="#ff6a1a" />
+        <stop offset="1" stopColor="#db2f1a" />
+      </linearGradient>
+      <linearGradient id={`${fireId}-i`} x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stopColor="#fff7d6" />
+        <stop offset="1" stopColor="#ffd23f" />
+      </linearGradient>
+    </defs>
     <path
-      fill="currentColor"
+      fill={`url(#${fireId}-o)`}
       stroke="none"
       d="M12 21.4c-3.5 0-6.2-2.5-6.2-5.9 0-3.1 2-5 3.5-7.1.3 1.5 1.1 2.5 2.2 3 .1-2.9 1.3-5.4 3.6-7.6-.2 2.7.8 4.6 2 6.4 1 1.5 1.9 3.1 1.9 5.3 0 3.4-2.6 5.9-7 5.9Z"
     />
     <path
-      fill="#bfeeff"
+      fill={`url(#${fireId}-i)`}
       stroke="none"
       d="M12 21.4c-1.5 0-2.6-1-2.6-2.5 0-1.4 1-2.3 2.1-3.4.4 1 1 1.5 1.7 1.7.6.8.9 1.3.9 1.9 0 1.3-.9 2.3-2.1 2.3Z"
     />

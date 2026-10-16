@@ -812,13 +812,13 @@
     transform-box: fill-box;
     transform-origin: center;
   }
-  /* Llama de gas real: cuerpo azul relleno y núcleo celeste brillante (sin contorno) */
+  /* Fuego real: cuerpo naranja → rojo y núcleo blanco-amarillo (degradados en glyphs.tsx) */
   .dx-g-flame-o {
-    fill: currentColor;
+    fill: url(#dx-fire-o);
     stroke: none;
   }
   .dx-g-flame-i {
-    fill: #bfeeff;
+    fill: url(#dx-fire-i);
     stroke: none;
   }
   .dx-g-drop,

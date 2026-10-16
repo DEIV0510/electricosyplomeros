@@ -198,9 +198,9 @@ function Outlet({ x, y }: { x: number; y: number }) {
 }
 
 /**
- * Lengua de llama de gas real: cono exterior azul (de azul intenso en la base a violeta
- * translúcido en la punta) y cono interior celeste brillante, casi blanco junto al
- * quemador. `lean` inclina la punta hacia afuera.
+ * Lengua de fuego real: cuerpo naranja que pasa a rojo translúcido en la punta y núcleo
+ * blanco-amarillo junto al quemador (pedido del cliente: «el color del fuego real»).
+ * `lean` inclina la punta hacia afuera.
  */
 function Flame({ x, h, lean = 0 }: { x: number; h: number; lean?: number }) {
   const b = 412;
@@ -240,20 +240,20 @@ export function SystemsSvg() {
           <stop offset="0.45" stopColor="#00c000" stopOpacity="0.16" />
           <stop offset="1" stopColor="#00c000" stopOpacity="0" />
         </radialGradient>
-        {/* Llama de gas: exterior azul → violeta translúcido; interior celeste → casi blanco */}
+        {/* Fuego real: exterior naranja → rojo translúcido en la punta; núcleo blanco-amarillo */}
         <linearGradient id="hs-flame-o" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="#1d4ed8" />
-          <stop offset="0.5" stopColor="#3b82f6" stopOpacity="0.95" />
-          <stop offset="1" stopColor="#6366f1" stopOpacity="0.35" />
+          <stop offset="0" stopColor="#ffa12b" />
+          <stop offset="0.5" stopColor="#ff6a1a" />
+          <stop offset="1" stopColor="#db2f1a" stopOpacity="0.6" />
         </linearGradient>
         <linearGradient id="hs-flame-i" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="#f0fbff" />
-          <stop offset="0.45" stopColor="#7dd3fc" />
-          <stop offset="1" stopColor="#38bdf8" stopOpacity="0.7" />
+          <stop offset="0" stopColor="#fff7d6" />
+          <stop offset="0.5" stopColor="#ffd23f" />
+          <stop offset="1" stopColor="#ff9d2e" stopOpacity="0.9" />
         </linearGradient>
         <radialGradient id="hs-flame-glow">
-          <stop offset="0" stopColor="#3b82f6" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#3b82f6" stopOpacity="0" />
+          <stop offset="0" stopColor="#ff7a1a" stopOpacity="0.3" />
+          <stop offset="1" stopColor="#ff7a1a" stopOpacity="0" />
         </radialGradient>
       </defs>
 

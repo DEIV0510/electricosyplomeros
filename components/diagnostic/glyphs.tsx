@@ -55,6 +55,18 @@ export function ServiceGlyph({ id, size = 32, className }: { id: SystemId; size?
       )}
       {id === 'gas' && (
         <>
+          {/* Fuego real (un solo glifo de gas en la página: ids únicos) */}
+          <defs>
+            <linearGradient id="dx-fire-o" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stopColor="#ffa12b" />
+              <stop offset="0.5" stopColor="#ff6a1a" />
+              <stop offset="1" stopColor="#db2f1a" />
+            </linearGradient>
+            <linearGradient id="dx-fire-i" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stopColor="#fff7d6" />
+              <stop offset="1" stopColor="#ffd23f" />
+            </linearGradient>
+          </defs>
           <path
             className="dx-g-flame-o"
             d="M12 21.4c-3.5 0-6.2-2.5-6.2-5.9 0-3.1 2-5 3.5-7.1.3 1.5 1.1 2.5 2.2 3 .1-2.9 1.3-5.4 3.6-7.6-.2 2.7.8 4.6 2 6.4 1 1.5 1.9 3.1 1.9 5.3 0 3.4-2.6 5.9-7 5.9Z"
