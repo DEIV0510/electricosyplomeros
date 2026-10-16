@@ -1152,12 +1152,14 @@
   .hs-burner {
     fill: var(--color-paper);
   }
-  .hs-flames path {
-    fill: var(--color-gas);
-    fill-opacity: 0.18;
-    stroke: var(--color-gas);
-    stroke-width: 1.1;
-    stroke-linejoin: round;
+  /* Llama de gas real (degradados en drawing.tsx): sin contorno, como una llama de verdad */
+  .hs-flame-o {
+    fill: url(#hs-flame-o);
+    stroke: none;
+  }
+  .hs-flame-i {
+    fill: url(#hs-flame-i);
+    stroke: none;
   }
 
   /* Hogar: anillo de encendido */

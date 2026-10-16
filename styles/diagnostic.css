@@ -812,6 +812,15 @@
     transform-box: fill-box;
     transform-origin: center;
   }
+  /* Llama de gas real: cuerpo azul relleno y núcleo celeste brillante (sin contorno) */
+  .dx-g-flame-o {
+    fill: currentColor;
+    stroke: none;
+  }
+  .dx-g-flame-i {
+    fill: #bfeeff;
+    stroke: none;
+  }
   .dx-g-drop,
   .dx-g-flame-o,
   .dx-g-flame-i {

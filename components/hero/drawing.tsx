@@ -197,15 +197,20 @@ function Outlet({ x, y }: { x: number; y: number }) {
   );
 }
 
-/** Lengua de llama (lados cóncavos, punta afilada). `lean` inclina la punta hacia afuera. */
+/**
+ * Lengua de llama de gas real: cono exterior azul (de azul intenso en la base a violeta
+ * translúcido en la punta) y cono interior celeste brillante, casi blanco junto al
+ * quemador. `lean` inclina la punta hacia afuera.
+ */
 function Flame({ x, h, lean = 0 }: { x: number; h: number; lean?: number }) {
   const b = 412;
-  const w = 2.6;
-  const tx = x + lean;
+  const tongue = (w: number, hh: number, t: number) =>
+    `M${x - w} ${b}Q${x - w * 0.35} ${b - hh * 0.45} ${t} ${b - hh}Q${x + w * 0.35} ${b - hh * 0.45} ${x + w} ${b}Z`;
   return (
-    <path
-      d={`M${x - w} ${b}Q${x - w * 0.35} ${b - h * 0.45} ${tx} ${b - h}Q${x + w * 0.35} ${b - h * 0.45} ${x + w} ${b}Z`}
-    />
+    <g>
+      <path className="hs-flame-o" d={tongue(3, h, x + lean)} />
+      <path className="hs-flame-i" d={tongue(1.7, h * 0.5, x + lean * 0.4)} />
+    </g>
   );
 }
 
@@ -235,6 +240,21 @@ export function SystemsSvg() {
           <stop offset="0.45" stopColor="#00c000" stopOpacity="0.16" />
           <stop offset="1" stopColor="#00c000" stopOpacity="0" />
         </radialGradient>
+        {/* Llama de gas: exterior azul → violeta translúcido; interior celeste → casi blanco */}
+        <linearGradient id="hs-flame-o" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stopColor="#1d4ed8" />
+          <stop offset="0.5" stopColor="#3b82f6" stopOpacity="0.95" />
+          <stop offset="1" stopColor="#6366f1" stopOpacity="0.35" />
+        </linearGradient>
+        <linearGradient id="hs-flame-i" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stopColor="#f0fbff" />
+          <stop offset="0.45" stopColor="#7dd3fc" />
+          <stop offset="1" stopColor="#38bdf8" stopOpacity="0.7" />
+        </linearGradient>
+        <radialGradient id="hs-flame-glow">
+          <stop offset="0" stopColor="#3b82f6" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#3b82f6" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
       <g className="hs-power">
@@ -246,10 +266,11 @@ export function SystemsSvg() {
           <rect className="hs-meter" x="488" y="424" width="24" height="32" />
           <circle className="hs-meter-dial" cx="500" cy="437" r="6" />
           <path className="hs-meter-dial" d="M500 437l3.5-3.5" />
+          <ellipse className="hs-flame-glow" cx="442" cy="406" rx="13" ry="9" fill="url(#hs-flame-glow)" />
           <g className="hs-flames">
-            <Flame x={436.5} h={8} lean={-1.2} />
-            <Flame x={442} h={11} />
-            <Flame x={447.5} h={8} lean={1.2} />
+            <Flame x={436} h={10} lean={-1.4} />
+            <Flame x={442} h={13.5} />
+            <Flame x={448} h={10} lean={1.4} />
           </g>
           <circle className="hs-burner" cx="442" cy="414" r="3" />
           <Diamond x={580} y={496} />
