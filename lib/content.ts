@@ -40,14 +40,11 @@ export const CITIES = [
     id: 'medellin',
     name: 'Medellín',
     region: 'Antioquia',
-    // Coordenadas públicas del centro de la ciudad (dato geográfico, no una dirección del negocio).
-    coords: '6.24° N · 75.58° O',
   },
   {
     id: 'monteria',
     name: 'Montería',
     region: 'Córdoba',
-    coords: '8.75° N · 75.88° O',
   },
 ] as const;
 

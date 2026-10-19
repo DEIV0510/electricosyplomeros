@@ -1421,7 +1421,7 @@
     grid-template-areas:
       "top check"
       "name name"
-      "coords coords";
+      "phone phone";
     align-items: center;
     row-gap: 8px;
     min-height: 112px;
@@ -1466,8 +1466,8 @@
     font-size: clamp(1.75rem, 3.2vw, 2.6rem);
     color: var(--color-mist);
   }
-  .dx-city-coords {
-    grid-area: coords;
+  .dx-city-phone {
+    grid-area: phone;
     color: var(--color-mist-3);
     white-space: nowrap;
   }

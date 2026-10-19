@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react';
-import { CITIES, DIAGNOSTIC } from '@/lib/content';
+import { CITIES, CONTACT, DIAGNOSTIC } from '@/lib/content';
 import { cx } from '@/components/ui/Cta';
 import { IconAlert, IconArrowLeft, IconArrowRight, IconCheck, IconCopy, IconEdit, IconWhatsApp } from '@/components/ui/Icons';
 import { Scope } from './glyphs';
@@ -291,8 +291,8 @@ function CityStep({ value, onPick }: { value: string | null; onPick: (id: string
                 <span className="t-label dx-city-region">{c.region}</span>
               </span>
               <span className="t-display dx-city-name">{c.name}</span>
-              <span className="t-label dx-city-coords" aria-hidden="true">
-                {c.coords}
+              <span className="t-label dx-city-phone" aria-hidden="true">
+                {CONTACT.phoneDisplay}
               </span>
               <span className="dx-opt-c" aria-hidden="true">
                 <IconCheck size={16} strokeWidth={2.5} />

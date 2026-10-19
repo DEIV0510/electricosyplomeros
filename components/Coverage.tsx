@@ -1,6 +1,7 @@
-import { CITIES, type CityId } from '@/lib/content';
+import { CITIES, CONTACT, type CityId } from '@/lib/content';
 import { cityMessage } from '@/lib/whatsapp';
-import { WhatsAppLink } from '@/components/ui/Cta';
+import { CallLink, WhatsAppLink } from '@/components/ui/Cta';
+import { IconPhone } from '@/components/ui/Icons';
 import SectionTag from '@/components/ui/SectionTag';
 import CoverageLink from '@/components/sections/CoverageLink';
 
@@ -45,7 +46,11 @@ export default function Coverage() {
               <div className="cov-body">
                 <p className="cov-meta">
                   <span className="cov-region">{c.region}</span>
-                  <span className="cov-coords">{c.coords}</span>
+                  <CallLink className="cov-phone">
+                    <IconPhone size={15} />
+                    <span>{CONTACT.phoneDisplay}</span>
+                    <span className="sr-only"> (llamar)</span>
+                  </CallLink>
                 </p>
                 <WhatsAppLink variant="secondary" message={cityMessage(c.id)} className="cov-cta">
                   Cotizar en {c.name}
